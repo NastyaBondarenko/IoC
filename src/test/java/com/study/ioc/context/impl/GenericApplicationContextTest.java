@@ -205,4 +205,57 @@ public class GenericApplicationContextTest {
         int actualPort = mailService.getPort();
         assertEquals(465, actualPort);
     }
+
+    @Test
+    public void testSortBeans() {
+        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+
+        BeanDefinition beanDefinitionDefaultBeanPostProcessor =
+                new BeanDefinition("DefaultBeanPostProcessor", "com.study.ioc.processor.DefaultBeanPostProcessor");
+        BeanDefinition beanDefinitionMailService
+                = new BeanDefinition("mailServicePOP", "com.study.entity.MailService");
+
+        beanDefinitionMap.put("DefaultBeanPostProcessor", beanDefinitionDefaultBeanPostProcessor);
+        beanDefinitionMap.put("mailServicePOP", beanDefinitionMailService);
+
+        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
+        Map<String, Bean> sortedBeans = genericApplicationContext.sortBeans(beanMap);
+
+        assertFalse(sortedBeans.containsKey("DefaultBeanPostProcessor"));
+        assertTrue(sortedBeans.containsKey("mailServicePOP"));
+        assertEquals(1, sortedBeans.size());
+
+        Bean actualMailBean = sortedBeans.get("mailServicePOP");
+        assertEquals(MailService.class, actualMailBean.getValue().getClass());
+    }
+
+    @Test
+    public void testModifyBeanDefinitions() {
+        Map<String, Bean> beanMap = new HashMap<>();
+        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+
+        MailService mailServicePOP = new MailService();
+        mailServicePOP.setPort(110);
+        mailServicePOP.setProtocol("POP3");
+        beanMap.put("mailServicePOP", new Bean("mailServicePOP", mailServicePOP));
+
+        DefaultUserService userService = new DefaultUserService();
+        beanMap.put("userService", new Bean("userService", userService));
+        BeanDefinition userServiceBeanDefinition =
+                new BeanDefinition("userService", "com.study.entity.DefaultUserService");
+
+        Map<String, String> userServiceRefDependencies = new HashMap<>();
+        userServiceRefDependencies.put("mailService", "mailServicePOP");
+        userServiceBeanDefinition.setRefDependencies(userServiceRefDependencies);
+        beanDefinitionMap.put("userService", userServiceBeanDefinition);
+
+        genericApplicationContext.injectRefDependencies(beanDefinitionMap, beanMap);
+
+        assertEquals("mailServicePOP", userServiceBeanDefinition.getRefDependencies().get("mailService"));
+
+        genericApplicationContext.modifyBeanDefinitions(beanDefinitionMap);
+
+        assertEquals("newServiceIMAP", userServiceBeanDefinition.getRefDependencies().get("newService"));
+        assertEquals(null, userServiceBeanDefinition.getRefDependencies().get("mailService"));
+    }
 }
