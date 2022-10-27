@@ -187,7 +187,8 @@ public class GenericApplicationContext implements ApplicationContext {
             interfaces = Arrays.stream(bean.getValue().getClass().getInterfaces())
                     .filter(i -> i.getName().contains("BeanPostProcessor")).toList();
             if (interfaces.isEmpty()) {
-                Bean newBean = new Bean(bean.getId(), entry.getValue().getValue());
+                Bean beanValue = entry.getValue();
+                Bean newBean = new Bean(bean.getId(), beanValue.getValue());
                 noSystemicBeans.put(entry.getKey(), newBean);
             }
         }
@@ -203,7 +204,6 @@ public class GenericApplicationContext implements ApplicationContext {
             newBean = new Bean(beanName, beanObject);
             beansMap.put(beanName, newBean);
         }
-
     }
 
     void initializeBeans(Map<String, Bean> beanMap) {
