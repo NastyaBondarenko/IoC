@@ -4,29 +4,21 @@ import java.util.Map;
 
 public class BeanDefinition {
     private String id;
-    private String className;
+    private String beanClassName;
     private Map<String, String> valueDependencies;
     private Map<String, String> refDependencies;
 
     public BeanDefinition(String id, String className) {
         this.id = id;
-        this.className = className;
+        this.beanClassName = className;
     }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getClassName() {
-        return className;
-    }
-
-    public void setClassName(String className) {
-        this.className = className;
+        return beanClassName;
     }
 
     public Map<String, String> getValueDependencies() {
