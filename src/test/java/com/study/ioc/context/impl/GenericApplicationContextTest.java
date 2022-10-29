@@ -7,8 +7,11 @@ import com.study.ioc.entity.BeanDefinition;
 import com.study.ioc.exception.BeanInstantiationException;
 import com.study.ioc.exception.NoSuchBeanDefinitionException;
 import com.study.ioc.exception.NoUniqueBeanOfTypeException;
+import com.study.ioc.processor.BeanFactoryPostProcessor;
+import com.study.ioc.processor.CustomBeanFactoryPostProcessor;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -207,55 +210,116 @@ public class GenericApplicationContextTest {
     }
 
     @Test
-    public void testSortBeans() {
+    @DisplayName("test Create BeanPostProcessors")
+    public void testCreateBeanPostProcessors() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+        BeanDefinition beanDefinitionFactoryPostProcessor =
+                new BeanDefinition("beanFactoryPostProcessor", "com.study.ioc.processor.CustomBeanFactoryPostProcessor");
+        BeanDefinition beanDefinitionUserService =
+                new BeanDefinition("userService", "com.study.entity.DefaultUserService");
+        beanDefinitionMap.put("userService", beanDefinitionUserService);
+        beanDefinitionMap.put("beanFactoryPostProcessor", beanDefinitionFactoryPostProcessor);
+        BeanDefinition beanDefinitionPostProcessor =
+                new BeanDefinition("beanPostProcessor", "com.study.ioc.processor.CustomBeanPostProcessor");
+        beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
 
-        BeanDefinition beanDefinitionDefaultBeanPostProcessor =
-                new BeanDefinition("DefaultBeanPostProcessor", "com.study.ioc.processor.DefaultBeanPostProcessor");
-        BeanDefinition beanDefinitionMailService
-                = new BeanDefinition("mailServicePOP", "com.study.entity.MailService");
+        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        Map<String, Bean> beanPostProcessors = genericApplicationContext.getBeanPostProcessorsMap();
+        List<BeanFactoryPostProcessor> beanFactoryPostProcessors = genericApplicationContext.getBeanFactoryPostProcessors();
 
-        beanDefinitionMap.put("DefaultBeanPostProcessor", beanDefinitionDefaultBeanPostProcessor);
-        beanDefinitionMap.put("mailServicePOP", beanDefinitionMailService);
-
-        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
-        Map<String, Bean> sortedBeans = genericApplicationContext.sortBeans(beanMap);
-
-        assertFalse(sortedBeans.containsKey("DefaultBeanPostProcessor"));
-        assertTrue(sortedBeans.containsKey("mailServicePOP"));
-        assertEquals(1, sortedBeans.size());
-
-        Bean actualMailBean = sortedBeans.get("mailServicePOP");
-        assertEquals(MailService.class, actualMailBean.getValue().getClass());
+        assertNotNull(beanPostProcessors);
+        assertNotNull(beanFactoryPostProcessors);
+        assertEquals(CustomBeanFactoryPostProcessor.class, beanFactoryPostProcessors.get(0).getClass());
     }
 
     @Test
-    public void testModifyBeanDefinitions() {
-        Map<String, Bean> beanMap = new HashMap<>();
+    @DisplayName("process BeanDefinitions")
+    public void processBeanDefinitions() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+        BeanDefinition beanDefinitionMailService
+                = new BeanDefinition("mailServicePOP", "com.study.entity.MailService");
+        beanDefinitionMap.put("mailServicePOP", beanDefinitionMailService);
 
+        BeanDefinition beanDefinitionUserService = new BeanDefinition("userService", "com.study.entity.DefaultUserService");
+        beanDefinitionMap.put("userService", beanDefinitionUserService);
+
+        BeanDefinition beanDefinitionFactoryPostProcessor =
+                new BeanDefinition("beanFactoryPostProcessor", "com.study.ioc.processor.CustomBeanFactoryPostProcessor");
+        beanDefinitionMap.put("beanFactoryPostProcessor", beanDefinitionFactoryPostProcessor);
+
+        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        genericApplicationContext.processBeanDefinitions(beanDefinitionMap);
+        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
+        genericApplicationContext.injectValueDependencies(beanDefinitionMap, beanMap);
+
+        MailService mailService = (MailService) beanMap.get("mailServicePOP").getValue();
+        assertEquals(4500, mailService.getPort());
+    }
+
+    @Test
+    @DisplayName("test Process Beans Before Initialization")
+    public void testProcessBeansBeforeInitialization() {
+        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+        BeanDefinition beanDefinitionMailService =
+                new BeanDefinition("mailServiceIMAP", "com.study.entity.MailService");
+        beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
+        BeanDefinition beanDefinitionBeanPostProcessor =
+                new BeanDefinition("beanPostProcessor", "com.study.ioc.processor.CustomBeanPostProcessor");
+        beanDefinitionMap.put("beanPostProcessor", beanDefinitionBeanPostProcessor);
+
+        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
+        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        genericApplicationContext.processBeansBeforeInitialization(beanMap);
+
+        Object actualObject = beanMap.get("mailServiceIMAP").getId();
+        Object expectedObject = "mailServiceIMAP";
+        assertEquals(expectedObject, actualObject);
+    }
+
+    @Test
+    @DisplayName("test Initialize Beans")
+    public void testInitializeBeans() {
+        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+        BeanDefinition beanDefinitionMailService =
+                new BeanDefinition("mailServicePOP", "com.study.entity.MailService");
+        beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
+        BeanDefinition beanDefinitionBeanPostProcessor =
+                new BeanDefinition("beanPostProcessor", "com.study.ioc.processor.CustomBeanPostProcessor");
+        beanDefinitionMap.put("beanPostProcessor", beanDefinitionBeanPostProcessor);
+
+        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
         MailService mailServicePOP = new MailService();
         mailServicePOP.setPort(110);
         mailServicePOP.setProtocol("POP3");
         beanMap.put("mailServicePOP", new Bean("mailServicePOP", mailServicePOP));
 
-        DefaultUserService userService = new DefaultUserService();
-        beanMap.put("userService", new Bean("userService", userService));
-        BeanDefinition userServiceBeanDefinition =
-                new BeanDefinition("userService", "com.study.entity.DefaultUserService");
+        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        genericApplicationContext.processBeansBeforeInitialization(beanMap);
+        genericApplicationContext.initializeBeans(beanMap);
 
-        Map<String, String> userServiceRefDependencies = new HashMap<>();
-        userServiceRefDependencies.put("mailService", "mailServicePOP");
-        userServiceBeanDefinition.setRefDependencies(userServiceRefDependencies);
-        beanDefinitionMap.put("userService", userServiceBeanDefinition);
+        assertEquals(4467, mailServicePOP.getPort());
+        assertEquals("IMAP", mailServicePOP.getProtocol());
+    }
 
-        genericApplicationContext.injectRefDependencies(beanDefinitionMap, beanMap);
+    @Test
+    @DisplayName("test Process Beans After Initialization")
+    public void testProcessBeansAfterInitialization() {
+        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+        BeanDefinition beanDefinitionMailService =
+                new BeanDefinition("mailServiceIMAP", "com.study.entity.MailService");
+        beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
+        BeanDefinition beanDefinitionBeanPostProcessor =
+                new BeanDefinition("beanPostProcessor", "com.study.ioc.processor.CustomBeanPostProcessor");
+        beanDefinitionMap.put("beanPostProcessor", beanDefinitionBeanPostProcessor);
 
-        assertEquals("mailServicePOP", userServiceBeanDefinition.getRefDependencies().get("mailService"));
+        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
+        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        genericApplicationContext.processBeansBeforeInitialization(beanMap);
+        genericApplicationContext.initializeBeans(beanMap);
+        genericApplicationContext.processBeansAfterInitialization(beanMap);
 
-        genericApplicationContext.modifyBeanDefinitions(beanDefinitionMap);
-
-        assertEquals("newServiceIMAP", userServiceBeanDefinition.getRefDependencies().get("newService"));
-        assertEquals(null, userServiceBeanDefinition.getRefDependencies().get("mailService"));
+        Object actualId = beanMap.get("mailServiceIMAP").getId();
+        Object expectedId = "mailServiceIMAP";
+        assertEquals(expectedId, actualId);
     }
 }
