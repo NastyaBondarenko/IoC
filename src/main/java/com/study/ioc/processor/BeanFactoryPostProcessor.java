@@ -2,8 +2,8 @@ package com.study.ioc.processor;
 
 import com.study.ioc.entity.BeanDefinition;
 
-import java.util.List;
+import java.util.Map;
 
 public interface BeanFactoryPostProcessor {
-    void postProcessBeanFactory(List<BeanDefinition> beanDefinitionList);
+    void postProcessBeanFactory(Map<String, BeanDefinition> beanDefinitionsMap);
 }
