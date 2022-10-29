@@ -9,7 +9,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -27,7 +26,7 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         for (String path : paths) {
             ClassLoader classLoader = getClass().getClassLoader();
-            try (InputStream inputStream = new BufferedInputStream(new FileInputStream(classLoader.getResource(path).getFile()))) {
+            try (InputStream inputStream = new BufferedInputStream(classLoader.getResourceAsStream(path))) {
                 beanDefinitionMap.putAll(getBeanDefinitionMap(inputStream));
             } catch (IOException | ParserConfigurationException | SAXException e) {
                 throw new ParseContextException("Context parse failed for " + path);
@@ -44,6 +43,4 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
         saxParser.parse(inputStream, handler);
         return handler.getBeanDefinitions();
     }
-
-
 }
