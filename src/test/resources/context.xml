@@ -17,6 +17,6 @@
         <property name="mailService" ref="mailServiceIMAP"/>
     </bean>
 
-    <bean id="DefaultBeanPostProcessor" class="com.study.ioc.processor.DefaultBeanPostProcessor"/>
-    <bean id="DefaultBeanFactoryPostProcessor" class="com.study.ioc.processor.DefaultBeanFactoryPostProcessor"/>
+    <bean id="beanPostProcessor" class="com.study.ioc.processor.CustomBeanPostProcessor"/>
+    <bean id="beanFactoryPostProcessor" class="com.study.ioc.processor.CustomBeanFactoryPostProcessor"/>
 </beans>
