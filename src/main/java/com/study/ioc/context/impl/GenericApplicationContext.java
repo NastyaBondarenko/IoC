@@ -7,18 +7,18 @@ import com.study.ioc.exception.BeanInstantiationException;
 import com.study.ioc.exception.NoSuchBeanDefinitionException;
 import com.study.ioc.exception.NoUniqueBeanOfTypeException;
 import com.study.ioc.exception.ProcessPostConstructException;
-import com.study.ioc.processor.DefaultBeanFactoryPostProcessor;
-import com.study.ioc.processor.DefaultBeanPostProcessor;
+import com.study.ioc.processor.BeanFactoryPostProcessor;
+import com.study.ioc.processor.BeanPostProcessor;
 import com.study.ioc.reader.BeanDefinitionReader;
 import com.study.ioc.reader.sax.XmlBeanDefinitionReader;
+import lombok.Getter;
+import lombok.SneakyThrows;
 
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,13 +28,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Getter
 public class GenericApplicationContext implements ApplicationContext {
 
     private Map<String, Bean> beanMap = new HashMap<>();
-    private final Map<String, Bean> noSystemicBeans = new HashMap<>();
-    private DefaultBeanPostProcessor defaultBeanPostProcessor = new DefaultBeanPostProcessor();
-    private DefaultBeanFactoryPostProcessor beanFactoryPostProcessor = new DefaultBeanFactoryPostProcessor();
-    private Map<String, Bean> beansMap = new HashMap<>();
+    private Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
+    private List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
 
     GenericApplicationContext() {
     }
@@ -46,14 +45,14 @@ public class GenericApplicationContext implements ApplicationContext {
     public GenericApplicationContext(BeanDefinitionReader definitionReader) {
         Map<String, BeanDefinition> beanDefinitions = definitionReader.getBeanDefinition();
 
-        modifyBeanDefinitions(beanDefinitions);
-        beansMap = createBeans(beanDefinitions);
-        injectValueDependencies(beanDefinitions, beansMap);
-        injectRefDependencies(beanDefinitions, beansMap);
-
-        processBeansBeforeInitialization();
-        initializeBeans(beansMap);
-        processBeansAfterInitialization();
+        createBeanPostProcessors(beanDefinitions);
+        processBeanDefinitions(beanDefinitions);
+        beanMap = createBeans(beanDefinitions);
+        injectValueDependencies(beanDefinitions, beanMap);
+        injectRefDependencies(beanDefinitions, beanMap);
+        processBeansBeforeInitialization(beanMap);
+        initializeBeans(beanMap);
+        processBeansAfterInitialization(beanMap);
     }
 
     @Override
@@ -94,115 +93,104 @@ public class GenericApplicationContext implements ApplicationContext {
     }
 
     Map<String, Bean> createBeans(Map<String, BeanDefinition> beanDefinitionMap) {
-        Map<String, Bean> beans = beanDefinitionMap.entrySet().stream()
-                .collect(Collectors.toMap(e -> String.format(e.getKey()), e -> {
-                    try {
-                        return new Bean(e.getKey(), Class.forName(e.getValue().getClassName())
-                                .getConstructor().newInstance());
-                    } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
-                             NoSuchMethodException | InvocationTargetException exception) {
-                        throw new BeanInstantiationException("Can`t create bean instantiation", exception);
-                    }
-                }));
-
-        sortBeans(beans);
-        beanMap.putAll(beans);
+        for (Map.Entry<String, BeanDefinition> beanDefinition : beanDefinitionMap.entrySet()) {
+            Object beanObject;
+            String key = beanDefinition.getKey();
+            try {
+                beanObject = Class.forName(beanDefinition.getValue().getClassName()).getConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
+                     NoSuchMethodException | InvocationTargetException exception) {
+                throw new BeanInstantiationException("Can`t create bean`s instantiation", exception);
+            }
+            Bean bean = new Bean(key, beanObject);
+            beanMap.put(key, bean);
+        }
         return beanMap;
     }
 
-    void injectValueDependencies(Map<String, BeanDefinition> beanDefinitions, Map<String, Bean> beans) {
+    public void injectRefDependencies(Map<String, BeanDefinition> beanDefinitions, Map<String, Bean> beans) {
+        for (Map.Entry<String, BeanDefinition> entry : beanDefinitions.entrySet()) {
+            String key = entry.getKey();
+            Bean bean = beans.get(key);
+            Map<String, String> refDependencies = entry.getValue().getRefDependencies();
+
+            for (Map.Entry<String, String> refDependency : refDependencies.entrySet()) {
+                String beanObject = refDependency.getValue();
+                findMethodToInjectRefDependencies(bean, refDependency.getKey(), beans.get(beanObject).getValue());
+            }
+        }
+    }
+
+    public void injectValueDependencies(Map<String, BeanDefinition> beanDefinitions, Map<String, Bean> beans) {
         beans.forEach((key, value) -> {
             if (beanDefinitions.containsKey(key)) {
                 Map<String, String> valueDependencies = beanDefinitions.get(key).getValueDependencies();
-
                 Field[] fields = value.getValue().getClass().getDeclaredFields();
-                for (Field field : fields) {
-                    if (valueDependencies.containsKey(field.getName())) {
-                        try {
-                            field.setAccessible(true);
-                            Class<?> fieldType = field.getType();
-                            String valueDependency = valueDependencies.get(field.getName());
-                            field.set(value.getValue(), getObject(valueDependency, fieldType));
-                        } catch (IllegalAccessException exception) {
-                            throw new BeanInstantiationException("injection valueDependencies is failed", exception);
-                        }
-                    }
-                }
+                findFieldsToInjectValueDependencies(value, valueDependencies, fields);
             }
         });
     }
 
-    void injectRefDependencies(Map<String, BeanDefinition> beanDefinitions, Map<String, Bean> beans) {
-        beans.forEach((key, value) -> {
-            if (beanDefinitions.containsKey(key)) {
-                Map<String, String> refDependencies = beanDefinitions.get(key).getRefDependencies();
-                Field[] fields = value.getValue().getClass().getDeclaredFields();
-                for (Field field : fields) {
-                    if (refDependencies.containsKey(field.getName())) {
-                        try {
-                            field.setAccessible(true);
-                            String refDependency = refDependencies.get(field.getName());
-                            field.set(value.getValue(), beans.get(refDependency).getValue());
-                        } catch (IllegalAccessException exception) {
-                            throw new BeanInstantiationException("injection refDependencies is failed", exception);
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    void injectValue(Object object, Method classMethod, String propertyValue) throws ReflectiveOperationException {
-        Method[] declaredMethods = object.getClass().getDeclaredMethods();
+    @SneakyThrows
+    void injectValue(Object object, Method classMethod, String propertyValue) {
+        Method[] methods = object.getClass().getDeclaredMethods();
         String methodName = classMethod.getName();
 
-        List<Method> searchedMethods = Stream.of(declaredMethods)
+        List<Method> searchedMethods = Stream.of(methods)
                 .filter(method -> method.getName().equals(methodName))
                 .filter(method -> method.getParameterTypes().length == 1)
                 .toList();
-
         for (Method searchedMethod : searchedMethods) {
             Class<?>[] parameterTypes = searchedMethod.getParameterTypes();
             String name = parameterTypes[0].getName();
             if (name.equalsIgnoreCase(Integer.TYPE.getName())) {
                 int port = Integer.parseInt(propertyValue);
-                searchedMethod.setAccessible(true);
                 searchedMethod.invoke(object, port);
             }
         }
     }
 
-    void modifyBeanDefinitions(Map<String, BeanDefinition> beanDefinitionsMap) {
-        List<BeanDefinition> beanDefinitions = beanDefinitionsMap.entrySet().stream()
-                .map(Map.Entry::getValue)
-                .toList();
-
-        beanFactoryPostProcessor.postProcessBeanFactory(beanDefinitions);
+    void setBeans(Map<String, Bean> beans) {
+        this.beanMap = beans;
     }
 
-    Map<String, Bean> sortBeans(Map<String, Bean> beanMap) {
-        List<Class<?>> interfaces;
-        for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
-            Bean bean = entry.getValue();
-            interfaces = Arrays.stream(bean.getValue().getClass().getInterfaces())
-                    .filter(i -> i.getName().contains("BeanPostProcessor")).toList();
-            if (interfaces.isEmpty()) {
-                Bean beanValue = entry.getValue();
-                Bean newBean = new Bean(bean.getId(), beanValue.getValue());
-                noSystemicBeans.put(entry.getKey(), newBean);
+    @SneakyThrows
+    void createBeanPostProcessors(Map<String, BeanDefinition> beanDefinitionMap) {
+        for (Map.Entry<String, BeanDefinition> entry : beanDefinitionMap.entrySet()) {
+            Class<?> clazz = Class.forName(entry.getValue().getClassName());
+
+            if ((BeanFactoryPostProcessor.class).isAssignableFrom(clazz)) {
+                BeanFactoryPostProcessor beanFactoryPostProcessor =
+                        (BeanFactoryPostProcessor) Class.forName(clazz.getName()).getConstructor().newInstance();
+                beanFactoryPostProcessors.add(beanFactoryPostProcessor);
+            }
+            if ((BeanPostProcessor.class).isAssignableFrom(clazz)) {
+                BeanDefinition entryValue = entry.getValue();
+                BeanPostProcessor beanPostProcessor =
+                        (BeanPostProcessor) Class.forName(clazz.getName()).getConstructor().newInstance();
+                Bean bean = new Bean(entryValue.getId(), beanPostProcessor);
+                beanPostProcessorsMap.put(entry.getKey(), bean);
             }
         }
-        return noSystemicBeans;
     }
 
-    void processBeansBeforeInitialization() {
-        Bean newBean;
-        Collection<Bean> beans = noSystemicBeans.values();
-        for (Bean bean : beans) {
-            String beanName = bean.getId();
-            Object beanObject = defaultBeanPostProcessor.postProcessBeforeInitialization(beanName, bean.getValue());
-            newBean = new Bean(beanName, beanObject);
-            beansMap.put(beanName, newBean);
+    void processBeanDefinitions(Map<String, BeanDefinition> beanDefinitionsMap) {
+        for (BeanFactoryPostProcessor beanFactoryPostProcessor : beanFactoryPostProcessors) {
+            beanFactoryPostProcessor.postProcessBeanFactory(beanDefinitionsMap);
+        }
+    }
+
+    void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
+        List<Bean> beanPostProcessors = beanPostProcessorsMap.values().stream().toList();
+        for (Bean beanPostProcessor : beanPostProcessors) {
+            BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();
+            for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
+                Bean bean = entry.getValue();
+                String beanId = bean.getId();
+
+                Bean beanProcessed = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, bean);
+                beanMap.put(beanId, beanProcessed);
+            }
         }
     }
 
@@ -214,42 +202,56 @@ public class GenericApplicationContext implements ApplicationContext {
                     try {
                         declaredMethod.setAccessible(true);
                         declaredMethod.invoke(beanObject);
-                    } catch (Exception e) {
-                        throw new ProcessPostConstructException("Can`t invoke method with PostConstruct annotation", e);
+                    } catch (Exception exception) {
+                        throw new ProcessPostConstructException("Can`t invoke method to initialize beans", exception);
                     }
                 }
             }
         }
     }
 
-    void processBeansAfterInitialization() {
-        Bean newBean;
-        Collection<Bean> beans = beanMap.values();
-        for (Bean bean : beans) {
-            String beanName = bean.getId();
-            Object beanObject = bean.getValue();
-            defaultBeanPostProcessor.postProcessAfterInitialization(beanName, beanObject);
-            newBean = new Bean(beanName, beanObject);
-            beansMap.put(beanName, newBean);
+    void processBeansAfterInitialization(Map<String, Bean> beanMap) {
+        List<Bean> beanPostProcessors = beanPostProcessorsMap.values().stream().toList();
+        for (Bean beanPostProcessor : beanPostProcessors) {
+            BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();
+            for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
+                Bean bean = entry.getValue();
+                String beanId = bean.getId();
+
+                Bean beanProcessed = objectBeanPostProcessor.postProcessAfterInitialization(beanId, bean);
+                beanMap.put(beanId, beanProcessed);
+            }
         }
     }
 
-    void setBeans(Map<String, Bean> beans) {
-        this.beanMap = beans;
+    private void findFieldsToInjectValueDependencies(Bean value, Map<String, String> valueDependencies, Field[] fields) {
+        for (Field field : fields) {
+            if (valueDependencies.containsKey(field.getName())) {
+                try {
+                    field.setAccessible(true);
+                    Class<?> fieldType = field.getType();
+                    String valueDependency = valueDependencies.get(field.getName());
+                    if ((Integer.TYPE == fieldType)) {
+                        Object object = Integer.parseInt(valueDependency);
+                        field.set(value.getValue(), object);
+                        return;
+                    }
+                    field.set(value.getValue(), String.valueOf(valueDependency));
+                } catch (IllegalAccessException exception) {
+                    throw new BeanInstantiationException("Cant find fields to inject valueDependencies", exception);
+                }
+            }
+        }
     }
 
-    private Object getObject(String value, Class<?> clazz) {
-        if (Boolean.TYPE == clazz) return Boolean.parseBoolean(value);
-        if (Byte.TYPE == clazz) return Byte.parseByte(value);
-        if (Short.TYPE == clazz) return Short.parseShort(value);
-        if (Integer.TYPE == clazz) return Integer.parseInt(value);
-        if (Long.TYPE == clazz) return Long.parseLong(value);
-        if (Float.TYPE == clazz) return Float.parseFloat(value);
-        if (Double.TYPE == clazz) return Double.parseDouble(value);
-        return value;
-    }
-
-    private String getSetterName(String fieldName) {
-        return "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+    @SneakyThrows
+    private void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
+        Method[] methods = bean.getValue().getClass().getDeclaredMethods();
+        String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+        for (Method method : methods) {
+            if (method.getName().equals(methodName)) {
+                method.invoke(bean.getValue(), value);
+            }
+        }
     }
 }
