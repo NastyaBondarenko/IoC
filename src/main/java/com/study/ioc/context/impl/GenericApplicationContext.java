@@ -228,9 +228,9 @@ public class GenericApplicationContext implements ApplicationContext {
         for (Field field : fields) {
             if (valueDependencies.containsKey(field.getName())) {
                 try {
-                    field.setAccessible(true);
                     Class<?> fieldType = field.getType();
                     String valueDependency = valueDependencies.get(field.getName());
+                    field.setAccessible(true);
                     if ((Integer.TYPE == fieldType)) {
                         Object object = Integer.parseInt(valueDependency);
                         field.set(value.getValue(), object);
