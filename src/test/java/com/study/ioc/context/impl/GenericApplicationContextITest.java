@@ -54,18 +54,6 @@ public class GenericApplicationContextITest {
     }
 
     @Test
-    @DisplayName("get Beans by Class")
-    public void testGetBeanByClass() {
-        Map<String, Bean> beanMap = genericApplicationContext.getBeanMap();
-        Object actualBean = genericApplicationContext.getBean(MailService.class);
-        Object expectedBean = beanMap.get("mailServicePOP").getValue();
-
-        assertNotNull(actualBean);
-        assertEquals(expectedBean, actualBean);
-        assertEquals(MailService.class, actualBean.getClass());
-    }
-
-    @Test
     @DisplayName("get Beans by Id And Class")
     public void testGetBeanByIdAndClass() {
         Map<String, Bean> beanMap = genericApplicationContext.getBeanMap();
