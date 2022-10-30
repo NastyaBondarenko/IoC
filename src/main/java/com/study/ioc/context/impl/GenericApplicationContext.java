@@ -65,13 +65,17 @@ public class GenericApplicationContext implements ApplicationContext {
 
     @Override
     public <T> T getBean(Class<T> clazz) {
-        Set<Bean> beans = new HashSet<>(beanMap.values());
-        beans = beans.stream().filter(bean ->
-                clazz.isAssignableFrom(bean.getValue().getClass())).collect(Collectors.toSet());
-        if (beans.size() == 1) {
-            return clazz.cast(beans.stream().findFirst().get().getValue());
+        T beanValue = null;
+        for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
+            Bean bean = entry.getValue();
+            if (clazz.isAssignableFrom(bean.getValue().getClass())) {
+                if (beanValue != null) {
+                    throw new NoUniqueBeanOfTypeException("No unique bean of type" + clazz.getName());
+                }
+                beanValue = clazz.cast(bean.getValue());
+            }
         }
-        throw new NoUniqueBeanOfTypeException("Bean is not unique");
+        return beanValue;
     }
 
     @Override
