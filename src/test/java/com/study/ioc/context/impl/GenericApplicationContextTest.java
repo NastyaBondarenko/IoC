@@ -263,9 +263,6 @@ public class GenericApplicationContextTest {
         BeanDefinition beanDefinitionMailService =
                 new BeanDefinition("mailServiceIMAP", "com.study.entity.MailService");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
-        BeanDefinition beanDefinitionBeanPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.study.ioc.processor.CustomBeanPostProcessor");
-        beanDefinitionMap.put("beanPostProcessor", beanDefinitionBeanPostProcessor);
 
         Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
         genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
@@ -308,9 +305,6 @@ public class GenericApplicationContextTest {
         BeanDefinition beanDefinitionMailService =
                 new BeanDefinition("mailServiceIMAP", "com.study.entity.MailService");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
-        BeanDefinition beanDefinitionBeanPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.study.ioc.processor.CustomBeanPostProcessor");
-        beanDefinitionMap.put("beanPostProcessor", beanDefinitionBeanPostProcessor);
 
         Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
         genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
