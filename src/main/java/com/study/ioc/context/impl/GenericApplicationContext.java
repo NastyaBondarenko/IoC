@@ -49,9 +49,9 @@ public class GenericApplicationContext implements ApplicationContext {
         beanMap = createBeans(beanDefinitions);
         injectValueDependencies(beanDefinitions, beanMap);
         injectRefDependencies(beanDefinitions, beanMap);
-        processBeansBeforeInitialization(beanMap);
+        processBeansBeforeInitialization(beanPostProcessorsMap);
         initializeBeans(beanMap);
-        processBeansAfterInitialization(beanMap);
+        processBeansAfterInitialization(beanPostProcessorsMap);
     }
 
     @Override
