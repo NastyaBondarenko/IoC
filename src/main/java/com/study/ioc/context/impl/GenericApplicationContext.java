@@ -12,6 +12,7 @@ import com.study.ioc.processor.BeanPostProcessor;
 import com.study.ioc.reader.BeanDefinitionReader;
 import com.study.ioc.reader.sax.XmlBeanDefinitionReader;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 
 import javax.annotation.PostConstruct;
@@ -20,14 +21,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Setter
 @Getter
 public class GenericApplicationContext implements ApplicationContext {
 
