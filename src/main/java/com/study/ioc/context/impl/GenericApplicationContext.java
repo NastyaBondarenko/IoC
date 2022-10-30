@@ -214,14 +214,14 @@ public class GenericApplicationContext implements ApplicationContext {
     }
 
     void processBeansAfterInitialization(Map<String, Bean> beanMap) {
-        List<Bean> beanPostProcessors = beanPostProcessorsMap.values().stream().toList();
-        for (Bean beanPostProcessor : beanPostProcessors) {
-            BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();
-            for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
-                Bean bean = entry.getValue();
-                String beanId = bean.getId();
+        for (Map.Entry<String, Bean> entry : beanPostProcessorsMap.entrySet()) {
+            Bean serviceBean = entry.getValue();
+            BeanPostProcessor objectPostProcessor = (BeanPostProcessor) serviceBean.getValue();
 
-                Bean beanProcessed = objectBeanPostProcessor.postProcessAfterInitialization(beanId, bean);
+            for (Map.Entry<String, Bean> beanEntry : beanMap.entrySet()) {
+                Bean bean = beanEntry.getValue();
+                String beanId = beanEntry.getValue().getId();
+                Bean beanProcessed = objectPostProcessor.postProcessAfterInitialization(beanId, bean);
                 beanMap.put(beanId, beanProcessed);
             }
         }
