@@ -49,9 +49,9 @@ public class GenericApplicationContext implements ApplicationContext {
         beanMap = createBeans(beanDefinitions);
         injectValueDependencies(beanDefinitions, beanMap);
         injectRefDependencies(beanDefinitions, beanMap);
-        processBeansBeforeInitialization(beanPostProcessorsMap);
+        processBeansBeforeInitialization(beanMap);
         initializeBeans(beanMap);
-        processBeansAfterInitialization(beanPostProcessorsMap);
+        processBeansAfterInitialization(beanMap);
     }
 
     @Override
@@ -116,10 +116,11 @@ public class GenericApplicationContext implements ApplicationContext {
             String key = entry.getKey();
             Bean bean = beans.get(key);
             Map<String, String> refDependencies = entry.getValue().getRefDependencies();
-
-            for (Map.Entry<String, String> refDependency : refDependencies.entrySet()) {
-                String beanObject = refDependency.getValue();
-                findMethodToInjectRefDependencies(bean, refDependency.getKey(), beans.get(beanObject).getValue());
+            if (!refDependencies.isEmpty()) {
+                for (Map.Entry<String, String> refDependency : refDependencies.entrySet()) {
+                    String beanObject = refDependency.getValue();
+                    findMethodToInjectRefDependencies(bean, refDependency.getKey(), beans.get(beanObject).getValue());
+                }
             }
         }
     }
@@ -191,8 +192,9 @@ public class GenericApplicationContext implements ApplicationContext {
                 Bean bean = entry.getValue();
                 String beanId = bean.getId();
 
-                Bean beanProcessed = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, bean);
-                beanMap.put(beanId, beanProcessed);
+                Object beanProcessed = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, bean);
+                bean.setValue(beanProcessed);
+                beanMap.put(beanId, bean);
             }
         }
     }
@@ -221,8 +223,9 @@ public class GenericApplicationContext implements ApplicationContext {
             for (Map.Entry<String, Bean> beanEntry : beanMap.entrySet()) {
                 Bean bean = beanEntry.getValue();
                 String beanId = beanEntry.getValue().getId();
-                Bean beanProcessed = objectPostProcessor.postProcessAfterInitialization(beanId, bean);
-                beanMap.put(beanId, beanProcessed);
+                Object beanProcessed = objectPostProcessor.postProcessAfterInitialization(beanId, bean);
+                bean.setValue(beanProcessed);
+                beanMap.put(beanId, bean);
             }
         }
     }

@@ -17,6 +17,11 @@
         <property name="mailService" ref="mailServiceIMAP"/>
     </bean>
 
+    <bean id="messageService" class="com.study.ioc.service.MessageService">
+        <property name="port" value="4566"/>
+        <property name="protocol" value="IMAP"/>
+    </bean>
+
     <bean id="beanPostProcessor" class="com.study.ioc.processor.CustomBeanPostProcessor"/>
     <bean id="beanFactoryPostProcessor" class="com.study.ioc.processor.CustomBeanFactoryPostProcessor"/>
 </beans>

@@ -9,6 +9,7 @@ import com.study.ioc.exception.NoSuchBeanDefinitionException;
 import com.study.ioc.exception.NoUniqueBeanOfTypeException;
 import com.study.ioc.processor.BeanFactoryPostProcessor;
 import com.study.ioc.processor.CustomBeanFactoryPostProcessor;
+import com.study.ioc.service.MessageService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -260,17 +261,26 @@ public class GenericApplicationContextTest {
     @DisplayName("test Process Beans Before Initialization")
     public void testProcessBeansBeforeInitialization() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+
+        BeanDefinition beanDefinitionTestClass = new BeanDefinition("messageService", "com.study.ioc.service.MessageService");
+        beanDefinitionMap.put("messageService", beanDefinitionTestClass);
         BeanDefinition beanDefinitionMailService =
                 new BeanDefinition("mailServiceIMAP", "com.study.entity.MailService");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
+        BeanDefinition beanDefinitionPostProcessor =
+                new BeanDefinition("beanPostProcessor", "com.study.ioc.processor.CustomBeanPostProcessor");
+        beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
+
 
         Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
+
         genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
         genericApplicationContext.processBeansBeforeInitialization(beanMap);
 
-        Object actualObject = beanMap.get("mailServiceIMAP").getId();
-        Object expectedObject = "mailServiceIMAP";
-        assertEquals(expectedObject, actualObject);
+        Bean actualMessageService = beanMap.get("messageService");
+        MessageService messageService = (MessageService) actualMessageService.getValue();
+        assertEquals(5000, messageService.getPort());
+        assertEquals("POP", messageService.getProtocol());
     }
 
     @Test
@@ -302,18 +312,27 @@ public class GenericApplicationContextTest {
     @DisplayName("test Process Beans After Initialization")
     public void testProcessBeansAfterInitialization() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+
+        BeanDefinition beanDefinitionTestClass = new BeanDefinition("messageService", "com.study.ioc.service.MessageService");
+        beanDefinitionMap.put("messageService", beanDefinitionTestClass);
         BeanDefinition beanDefinitionMailService =
                 new BeanDefinition("mailServiceIMAP", "com.study.entity.MailService");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
+        BeanDefinition beanDefinitionPostProcessor =
+                new BeanDefinition("beanPostProcessor", "com.study.ioc.processor.CustomBeanPostProcessor");
+        beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
+
 
         Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
+
         genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
         genericApplicationContext.processBeansBeforeInitialization(beanMap);
         genericApplicationContext.initializeBeans(beanMap);
         genericApplicationContext.processBeansAfterInitialization(beanMap);
 
-        Object actualId = beanMap.get("mailServiceIMAP").getId();
-        Object expectedId = "mailServiceIMAP";
-        assertEquals(expectedId, actualId);
+        Bean actualMessageService = beanMap.get("messageService");
+        MessageService messageService = (MessageService) actualMessageService.getValue();
+        assertEquals(6000, messageService.getPort());
+        assertEquals("IMAP", messageService.getProtocol());
     }
 }

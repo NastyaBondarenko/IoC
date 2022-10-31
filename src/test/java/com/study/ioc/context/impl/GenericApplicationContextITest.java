@@ -34,6 +34,7 @@ public class GenericApplicationContextITest {
         expectedBeanNames.add("mailServicePOP");
         expectedBeanNames.add("beanPostProcessor");
         expectedBeanNames.add("userServiceImap");
+        expectedBeanNames.add("messageService");
         expectedBeanNames.add("mailServiceIMAP");
         expectedBeanNames.add("userService");
 
