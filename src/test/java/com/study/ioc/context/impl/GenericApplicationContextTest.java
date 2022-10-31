@@ -262,8 +262,8 @@ public class GenericApplicationContextTest {
     public void testProcessBeansBeforeInitialization() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
-        BeanDefinition beanDefinitionTestClass = new BeanDefinition("messageService", "com.study.ioc.service.MessageService");
-        beanDefinitionMap.put("messageService", beanDefinitionTestClass);
+        BeanDefinition beanDefinitionMessageService = new BeanDefinition("messageService", "com.study.ioc.service.MessageService");
+        beanDefinitionMap.put("messageService", beanDefinitionMessageService);
         BeanDefinition beanDefinitionMailService =
                 new BeanDefinition("mailServiceIMAP", "com.study.entity.MailService");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
@@ -271,9 +271,7 @@ public class GenericApplicationContextTest {
                 new BeanDefinition("beanPostProcessor", "com.study.ioc.processor.CustomBeanPostProcessor");
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
 
-
         Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
-
         genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
         genericApplicationContext.processBeansBeforeInitialization(beanMap);
 
@@ -313,8 +311,8 @@ public class GenericApplicationContextTest {
     public void testProcessBeansAfterInitialization() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
-        BeanDefinition beanDefinitionTestClass = new BeanDefinition("messageService", "com.study.ioc.service.MessageService");
-        beanDefinitionMap.put("messageService", beanDefinitionTestClass);
+        BeanDefinition beanDefinitionMessageService = new BeanDefinition("messageService", "com.study.ioc.service.MessageService");
+        beanDefinitionMap.put("messageService", beanDefinitionMessageService);
         BeanDefinition beanDefinitionMailService =
                 new BeanDefinition("mailServiceIMAP", "com.study.entity.MailService");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
@@ -324,7 +322,6 @@ public class GenericApplicationContextTest {
 
 
         Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
-
         genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
         genericApplicationContext.processBeansBeforeInitialization(beanMap);
         genericApplicationContext.initializeBeans(beanMap);
