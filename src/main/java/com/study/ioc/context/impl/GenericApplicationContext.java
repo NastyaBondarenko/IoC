@@ -16,14 +16,9 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 
 import javax.annotation.PostConstruct;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Setter
@@ -125,34 +120,36 @@ public class GenericApplicationContext implements ApplicationContext {
         }
     }
 
-    public void injectValueDependencies(Map<String, BeanDefinition> beanDefinitions, Map<String, Bean> beanMap) {
-        beanMap.forEach((key, value) -> {
-            if (beanDefinitions.containsKey(key)) {
-                Map<String, String> valueDependencies = beanDefinitions.get(key).getValueDependencies();
-                Object object = value.getValue();
-                Field[] fields = object.getClass().getDeclaredFields();
-                findFieldsToInjectValueDependencies(value, valueDependencies, fields);
+    public void injectValueDependencies(Map<String, BeanDefinition> beanDefinitionMap, Map<String, Bean> beanMap) {
+        beanMap.forEach((beanKey, beanValue) -> {
+            if (beanDefinitionMap.containsKey(beanKey)) {
+                Map<String, String> valueDependencies = beanDefinitionMap.get(beanKey).getValueDependencies();
+                Bean bean = beanMap.get(beanKey);
+                valueDependencies.forEach((key, value) -> findMethodsToInjectValueDependencies(bean, key, value));
             }
         });
     }
 
     @SneakyThrows
     void injectValue(Object object, Method classMethod, String propertyValue) {
-        Method[] methods = object.getClass().getDeclaredMethods();
+        Method[] methods = object.getClass().getMethods();
         String methodName = classMethod.getName();
+        Class<?>[] parameterTypes = classMethod.getParameterTypes();
 
         List<Method> searchedMethods = Stream.of(methods)
                 .filter(method -> method.getName().equals(methodName))
                 .filter(method -> method.getParameterTypes().length == 1)
                 .toList();
-        for (Method searchedMethod : searchedMethods) {
-            Class<?>[] parameterTypes = searchedMethod.getParameterTypes();
-            String name = parameterTypes[0].getName();
-            if (name.equalsIgnoreCase(Integer.TYPE.getName())) {
-                int port = Integer.parseInt(propertyValue);
-                searchedMethod.invoke(object, port);
+
+        if (!searchedMethods.isEmpty()) {
+            String parameterType = parameterTypes[0].getName();
+            if (parameterType.equals(Integer.TYPE.getName())) {
+                int intValueOfProperty = Integer.parseInt(propertyValue);
+                classMethod.invoke(object, intValueOfProperty);
+                return;
             }
         }
+        classMethod.invoke(object, propertyValue);
     }
 
     void setBeans(Map<String, Bean> beans) {
@@ -232,34 +229,39 @@ public class GenericApplicationContext implements ApplicationContext {
         }
     }
 
-    private void findFieldsToInjectValueDependencies(Bean value, Map<String, String> valueDependencies, Field[] fields) {
-        for (Field field : fields) {
-            if (valueDependencies.containsKey(field.getName())) {
-                try {
-                    Class<?> fieldType = field.getType();
-                    String valueDependency = valueDependencies.get(field.getName());
-                    field.setAccessible(true);
-                    if ((Integer.TYPE == fieldType)) {
-                        Object object = Integer.parseInt(valueDependency);
-                        field.set(value.getValue(), object);
-                        return;
-                    }
-                    field.set(value.getValue(), String.valueOf(valueDependency));
-                } catch (IllegalAccessException exception) {
-                    throw new BeanInstantiationException("Cant find fields to inject valueDependencies", exception);
-                }
+    @SneakyThrows
+    private void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
+        Method[] methods = bean.getValue().getClass().getMethods();
+        String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+
+        for (Method method : methods) {
+            if (method.getName().equals(methodName)) {
+                method.invoke(bean.getValue(), value);
             }
         }
     }
 
     @SneakyThrows
-    private void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
-        Method[] methods = bean.getValue().getClass().getDeclaredMethods();
-        String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-        for (Method method : methods) {
-            if (method.getName().equals(methodName)) {
-                method.invoke(bean.getValue(), value);
-            }
+    private void findMethodsToInjectValueDependencies(Bean bean, String key, String value) {
+        List<Method> methods = Arrays.stream(bean.getValue().getClass().getMethods()).toList();
+        String methodName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
+
+        Class<?>[] parameterTypes = methods.stream()
+                .filter(method -> method.getName().equals(methodName))
+                .findFirst()
+                .map(Method::getParameterTypes)
+                .get();
+
+        String parameterType = Arrays.stream(parameterTypes).findFirst().get().getName();
+        Method searchedMethod = methods.stream()
+                .filter(method -> method.getName().equals(methodName))
+                .findFirst().get();
+
+        if (parameterType.equals(Integer.TYPE.getName())) {
+            injectValue(bean.getValue(), searchedMethod, value);
+        }
+        if (parameterType.equals(String.class.getName())) {
+            injectValue(bean.getValue(), searchedMethod, value);
         }
     }
 }

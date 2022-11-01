@@ -3,8 +3,8 @@ package com.study.entity;
 import javax.annotation.PostConstruct;
 
 public class MailService implements IMailService {
-    private String protocol;
-    private int port;
+    public String protocol;
+    public int port;
 
     @PostConstruct
     private void init() {
