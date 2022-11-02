@@ -18,7 +18,12 @@ import lombok.SneakyThrows;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Setter
@@ -257,10 +262,7 @@ public class GenericApplicationContext implements ApplicationContext {
                 .filter(method -> method.getName().equals(methodName))
                 .findFirst().get();
 
-        if (parameterType.equals(Integer.TYPE.getName())) {
-            injectValue(bean.getValue(), searchedMethod, value);
-        }
-        if (parameterType.equals(String.class.getName())) {
+        if (parameterType.equals(Integer.TYPE.getName()) || parameterType.equals(String.class.getName())) {
             injectValue(bean.getValue(), searchedMethod, value);
         }
     }
