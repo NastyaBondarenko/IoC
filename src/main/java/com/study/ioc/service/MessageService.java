@@ -6,6 +6,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class MessageService {
-    int port=4566;
-    String protocol="IMAP";
+    private int port = 4566;
+    private String protocol = "IMAP";
 }
