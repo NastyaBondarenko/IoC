@@ -14,21 +14,25 @@ class BeanDefinitionScannerTest {
     @Test
     @DisplayName("should scan bean definition successfully")
     void shouldScanBeanDefinitionSuccessfully() {
-        BeanDefinitionScanner scanner = new BeanDefinitionScanner(SCAN_PACKAGES);
-        Map<String, BeanDefinition> beanDefinitionMap = scanner.getBeanDefinition();
+        BeanDefinitionScanner beanDefinitionScanner = new BeanDefinitionScanner(SCAN_PACKAGES);
+        Map<String, BeanDefinition> beanDefinitionMap = beanDefinitionScanner.getBeanDefinition();
 
         Assertions.assertEquals(3, beanDefinitionMap.size());
 
-        BeanDefinition beanDefinitionFirst = beanDefinitionMap.get("MailServicePOP");
-        Assertions.assertEquals("MailServicePOP", beanDefinitionFirst.getId());
+        BeanDefinition beanDefinitionFirst = beanDefinitionMap.get("DefaultUserService");
+        Assertions.assertEquals("DefaultUserService", beanDefinitionFirst.getId());
+        Assertions.assertEquals("com.study.testclasses.DefaultUserService", beanDefinitionFirst.getClassName());
         Assertions.assertTrue(beanDefinitionFirst.getRefDependencies().isEmpty());
 
-        BeanDefinition beanDefinitionSecond = beanDefinitionMap.get("UserService");
-        Assertions.assertEquals("UserService", beanDefinitionSecond.getId());
-        Assertions.assertTrue(beanDefinitionSecond.getValueDependencies().isEmpty());
 
-        BeanDefinition beanDefinitionThird = beanDefinitionMap.get("MailServiceIMAP");
-        Assertions.assertEquals("MailServiceIMAP", beanDefinitionThird.getId());
+        BeanDefinition beanDefinitionSecond = beanDefinitionMap.get("MailService");
+        Assertions.assertEquals("MailService", beanDefinitionSecond.getId());
+        Assertions.assertEquals("com.study.testclasses.MailService", beanDefinitionSecond.getClassName());
+        Assertions.assertTrue(beanDefinitionSecond.getRefDependencies().isEmpty());
+
+        BeanDefinition beanDefinitionThird = beanDefinitionMap.get("MessageService");
+        Assertions.assertEquals("MessageService", beanDefinitionThird.getId());
+        Assertions.assertEquals("com.study.testclasses.MessageService", beanDefinitionThird.getClassName());
         Assertions.assertTrue(beanDefinitionThird.getRefDependencies().isEmpty());
     }
 }

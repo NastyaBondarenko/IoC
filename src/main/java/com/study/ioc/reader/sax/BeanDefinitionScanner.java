@@ -24,7 +24,7 @@ public class BeanDefinitionScanner implements BeanDefinitionReader {
                         .filterInputsBy(new FilterBuilder().includePackage(packageName))
                         .setScanners(new SubTypesScanner(false)))
                         .getSubTypesOf(Object.class).stream()
-                        .map(clazz -> new BeanDefinition(clazz.getSimpleName(), clazz.getSimpleName())))
-                .collect(Collectors.toMap(BeanDefinition::getClassName, beanDefinition -> beanDefinition));
+                        .map(clazz -> new BeanDefinition(clazz.getSimpleName(), clazz.getName())))
+                .collect(Collectors.toMap(BeanDefinition::getId, beanDefinition -> beanDefinition));
     }
 }
