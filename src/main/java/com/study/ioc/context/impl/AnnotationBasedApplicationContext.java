@@ -1,5 +1,6 @@
 package com.study.ioc.context.impl;
 
+import com.study.ioc.annotations.Component;
 import com.study.ioc.context.ApplicationContext;
 import com.study.ioc.entity.Bean;
 import com.study.ioc.entity.BeanDefinition;
@@ -10,8 +11,9 @@ import com.study.ioc.exception.ProcessPostConstructException;
 import com.study.ioc.processor.BeanFactoryPostProcessor;
 import com.study.ioc.processor.BeanPostProcessor;
 import com.study.ioc.reader.BeanDefinitionReader;
-import com.study.ioc.reader.sax.XmlBeanDefinitionReader;
+import com.study.ioc.reader.sax.BeanDefinitionScanner;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 
@@ -23,17 +25,15 @@ import java.util.stream.Stream;
 
 @Setter
 @Getter
+@NoArgsConstructor
 public class AnnotationBasedApplicationContext implements ApplicationContext {
 
     private Map<String, Bean> beanMap = new HashMap<>();
     private Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
     private List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
 
-    AnnotationBasedApplicationContext() {
-    }
-
     public AnnotationBasedApplicationContext(String... paths) {
-        this(new XmlBeanDefinitionReader(paths));
+        this(new BeanDefinitionScanner(paths));
     }
 
     public AnnotationBasedApplicationContext(BeanDefinitionReader definitionReader) {
@@ -92,10 +92,13 @@ public class AnnotationBasedApplicationContext implements ApplicationContext {
 
     Map<String, Bean> createBeans(Map<String, BeanDefinition> beanDefinitionMap) {
         for (Map.Entry<String, BeanDefinition> beanDefinition : beanDefinitionMap.entrySet()) {
-            Object beanObject;
+            Object beanObject = null;
             String key = beanDefinition.getKey();
             try {
-                beanObject = Class.forName(beanDefinition.getValue().getClassName()).getConstructor().newInstance();
+                Class<?> classObject = Class.forName(key);
+                if (classObject.isAnnotationPresent(Component.class)) {
+                    beanObject = Class.forName(beanDefinition.getValue().getClassName()).getConstructor().newInstance();
+                }
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
                      NoSuchMethodException | InvocationTargetException exception) {
                 throw new BeanInstantiationException("Can`t create bean`s instantiation", exception);
