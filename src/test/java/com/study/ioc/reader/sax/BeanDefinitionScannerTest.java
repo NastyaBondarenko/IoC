@@ -24,7 +24,6 @@ class BeanDefinitionScannerTest {
         Assertions.assertEquals("com.study.testclasses.DefaultUserService", beanDefinitionFirst.getClassName());
         Assertions.assertTrue(beanDefinitionFirst.getRefDependencies().isEmpty());
 
-
         BeanDefinition beanDefinitionSecond = beanDefinitionMap.get("MailService");
         Assertions.assertEquals("MailService", beanDefinitionSecond.getId());
         Assertions.assertEquals("com.study.testclasses.MailService", beanDefinitionSecond.getClassName());

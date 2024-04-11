@@ -92,19 +92,19 @@ public class AnnotationBasedApplicationContext implements ApplicationContext {
 
     Map<String, Bean> createBeans(Map<String, BeanDefinition> beanDefinitionMap) {
         for (Map.Entry<String, BeanDefinition> beanDefinition : beanDefinitionMap.entrySet()) {
-            Object beanObject = null;
+            String className = beanDefinition.getValue().getClassName();
             String key = beanDefinition.getKey();
             try {
-                Class<?> classObject = Class.forName(key);
+                Class<?> classObject = Class.forName(className);
                 if (classObject.isAnnotationPresent(Component.class)) {
-                    beanObject = Class.forName(beanDefinition.getValue().getClassName()).getConstructor().newInstance();
+                    Object beanObject = classObject.getDeclaredConstructor().newInstance();
+                    Bean bean = new Bean(key, beanObject);
+                    beanMap.put(key, bean);
                 }
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
                      NoSuchMethodException | InvocationTargetException exception) {
                 throw new BeanInstantiationException("Can`t create bean`s instantiation", exception);
             }
-            Bean bean = new Bean(key, beanObject);
-            beanMap.put(key, bean);
         }
         return beanMap;
     }
