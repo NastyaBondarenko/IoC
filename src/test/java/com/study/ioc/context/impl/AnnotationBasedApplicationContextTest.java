@@ -182,7 +182,8 @@ public class AnnotationBasedApplicationContextTest {
     }
 
 //    @Test
-//    public void testInjectRefDependencies() {
+//    @DisplayName("should inject ref dependencies successfully")
+//    public void shouldInjectRefDependenciesSuccessfully() {
 //        Map<String, Bean> beanMap = new HashMap<>();
 //        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 //
@@ -194,8 +195,7 @@ public class AnnotationBasedApplicationContextTest {
 //        DefaultUserService userService = new DefaultUserService();
 //        beanMap.put("userService", new Bean("userService", userService));
 //
-//        //  setMailService(mailServicePOP) via refDependencies
-//        BeanDefinition userServiceBeanDefinition = new BeanDefinition("userService", "com.study.entity.DefaultUserService");
+//        BeanDefinition userServiceBeanDefinition = new BeanDefinition("userService", "com.study.testclasses.DefaultUserService");
 //        Map<String, String> userServiceRefDependencies = new HashMap<>();
 //        userServiceRefDependencies.put("mailService", "mailServicePOP");
 //        userServiceBeanDefinition.setRefDependencies(userServiceRefDependencies);
@@ -208,7 +208,8 @@ public class AnnotationBasedApplicationContextTest {
 //    }
 
     @Test
-    public void testInjectValue() throws ReflectiveOperationException {
+    @DisplayName("should inject value successfully")
+    public void shouldInjectValueSuccessfully() throws ReflectiveOperationException {
         MailService mailService = new MailService();
         Method setPortMethod = MailService.class.getDeclaredMethod("setPort", Integer.TYPE);
         annotationBasedApplicationContext.injectValue(mailService, setPortMethod, "465");
@@ -264,8 +265,8 @@ public class AnnotationBasedApplicationContextTest {
     }
 
     @Test
-    @DisplayName("test Process Beans Before Initialization")
-    public void testProcessBeansBeforeInitialization() {
+    @DisplayName("should Process Beans Before Initialization Successfully")
+    public void shouldProcessBeansBeforeInitializationSuccessfully() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService = new BeanDefinition("messageService", "com.study.ioc.service.MessageService");
@@ -288,8 +289,8 @@ public class AnnotationBasedApplicationContextTest {
     }
 
 //    @Test
-//    @DisplayName("test Initialize Beans")
-//    public void testInitializeBeans() {
+//    @DisplayName("should Initialize Beans Successfully")
+//    public void shouldInitializeBeansSuccessfully() {
 //        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 //        BeanDefinition beanDefinitionMailService =
 //                new BeanDefinition("mailServicePOP", "com.study.entity.MailService");
@@ -313,8 +314,8 @@ public class AnnotationBasedApplicationContextTest {
 //    }
 
     @Test
-    @DisplayName("test Process Beans After Initialization")
-    public void testProcessBeansAfterInitialization() {
+    @DisplayName("should Process Beans After Initialization Successfully")
+    public void shouldProcessBeansAfterInitializationSuccessfully() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService = new BeanDefinition("messageService", "com.study.ioc.service.MessageService");
