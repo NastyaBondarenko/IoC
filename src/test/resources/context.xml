@@ -1,27 +1,27 @@
 <beans>
-    <bean id="mailServicePOP" class="com.study.entity.MailService">
+    <bean id="mailServicePOP" class="com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl">
         <property name="port" value="995"/>
         <property name="protocol" value="POP3"/>
     </bean>
 
-    <bean id="userService" class="com.study.entity.DefaultUserService">
+    <bean id="userService" class="com.bondarenko.ioc.testclasses.context.impl.UserServiceImpl">
         <property name="mailService" ref="mailServicePOP"/>
     </bean>
 
-    <bean id="mailServiceIMAP" class="com.study.entity.MailService">
+    <bean id="mailServiceIMAP" class="com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl">
         <property name="port" value="143"/>
         <property name="protocol" value="IMAP"/>
     </bean>
 
-    <bean id="userServiceImap" class="com.study.entity.DefaultUserService">
+    <bean id="userServiceImap" class="com.bondarenko.ioc.testclasses.context.impl.UserServiceImpl">
         <property name="mailService" ref="mailServiceIMAP"/>
     </bean>
 
-    <bean id="messageService" class="com.study.ioc.service.MessageService">
+    <bean id="messageService" class="com.bondarenko.ioc.testclasses.reader.MessageService">
         <property name="port" value="4566"/>
         <property name="protocol" value="IMAP"/>
     </bean>
 
-    <bean id="beanPostProcessor" class="com.study.ioc.processor.CustomBeanPostProcessor"/>
-    <bean id="beanFactoryPostProcessor" class="com.study.ioc.processor.CustomBeanFactoryPostProcessor"/>
+    <bean id="beanPostProcessor" class="com.bondarenko.ioc.testclasses.CustomBeanPostProcessor"/>
+    <bean id="beanFactoryPostProcessor" class="com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor"/>
 </beans>
