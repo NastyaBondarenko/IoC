@@ -1,6 +1,5 @@
 package com.bondarenko.ioc.context.impl;
 
-import com.bondarenko.ioc.annotation.Component;
 import com.bondarenko.ioc.context.ApplicationContext;
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.entity.BeanDefinition;
@@ -95,12 +94,10 @@ public class AnnotationBasedApplicationContext implements ApplicationContext {
             String className = beanDefinition.getValue().getClassName();
             String key = beanDefinition.getKey();
             try {
-                Class<?> classObject = Class.forName(className);
-                if (classObject.isAnnotationPresent(Component.class)) {
-                    Object beanObject = classObject.getDeclaredConstructor().newInstance();
-                    Bean bean = new Bean(key, beanObject);
-                    beanMap.put(key, bean);
-                }
+                Object beanObject = Class.forName(className).getDeclaredConstructor().newInstance();
+                Bean bean = new Bean(key, beanObject);
+                beanMap.put(key, bean);
+
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException |
                      NoSuchMethodException | InvocationTargetException exception) {
                 throw new BeanInstantiationException("Can`t create bean`s instantiation", exception);
