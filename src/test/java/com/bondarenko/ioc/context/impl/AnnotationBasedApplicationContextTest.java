@@ -11,9 +11,9 @@ import com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor;
 import com.bondarenko.ioc.testclasses.reader.DefaultUserService;
 import com.bondarenko.ioc.testclasses.reader.MailService;
 import com.bondarenko.ioc.testclasses.reader.MessageService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -21,20 +21,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class AnnotationBasedApplicationContextTest {
 
     private AnnotationBasedApplicationContext annotationBasedApplicationContext;
 
-    @Before
+    @BeforeEach
     public void before() {
         annotationBasedApplicationContext = new AnnotationBasedApplicationContext("com.study.testclasses");
     }
 
     @Test
     @DisplayName("should create beans successfully")
-    public void shouldCreateBeansSuccessfully() {
+    void shouldCreateBeansSuccessfully() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition beanDefinitionMailService = new BeanDefinition("MailService", "com.bondarenko.ioc.testclasses.reader.MailService");
         beanDefinitionMap.put("MailService", beanDefinitionMailService);
@@ -53,18 +54,21 @@ public class AnnotationBasedApplicationContextTest {
         assertEquals(DefaultUserService.class, actualUserBean.getValue().getClass());
     }
 
-    @Test(expected = BeanInstantiationException.class)
+    @Test
     @DisplayName("should create beans with wrong class successfully")
-    public void shouldCreateBeansWithWrongClassSuccessfully() {
+    void shouldCreateBeansWithWrongClassSuccessfully() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition errorBeanDefinition = new BeanDefinition("mailServicePOP", "com.study.entity.TestClass");
         beanDefinitionMap.put("mailServicePOP", errorBeanDefinition);
-        Map<String, Bean> beanMap = annotationBasedApplicationContext.createBeans(beanDefinitionMap);
+
+        assertThrows(BeanInstantiationException.class, () -> {
+            annotationBasedApplicationContext.createBeans(beanDefinitionMap);
+        });
     }
 
     @Test
     @DisplayName("should get bean by id successfully")
-    public void shouldGetBeanByIdSuccessfully() {
+    void shouldGetBeanByIdSuccessfully() {
         Map<String, Bean> beanMap = new HashMap<>();
         DefaultUserService beanValue1 = new DefaultUserService();
         DefaultUserService beanValue2 = new DefaultUserService();
@@ -81,7 +85,7 @@ public class AnnotationBasedApplicationContextTest {
 
     @Test
     @DisplayName("should get bean by clazz successfully")
-    public void shouldGetBeanByClazzSuccessfully() {
+    void shouldGetBeanByClazzSuccessfully() {
         Map<String, Bean> beanMap = new HashMap<>();
         DefaultUserService beanValue1 = new DefaultUserService();
         MailService beanValue2 = new MailService();
@@ -96,19 +100,22 @@ public class AnnotationBasedApplicationContextTest {
         assertEquals(beanValue2, actualBeanValue2);
     }
 
-    @Test(expected = NoUniqueBeanOfTypeException.class)
+    @Test
     @DisplayName("should get bean by clazz no unique bean successfully")
-    public void shouldGetBeanByClazzNoUniqueBeanSuccessfully() {
+    void shouldGetBeanByClazzNoUniqueBeanSuccessfully() {
         Map<String, Bean> beanMap = new HashMap<>();
         beanMap.put("bean1", new Bean("bean1", new DefaultUserService()));
         beanMap.put("bean2", new Bean("bean2", new DefaultUserService()));
         annotationBasedApplicationContext.setBeans(beanMap);
-        annotationBasedApplicationContext.getBean(DefaultUserService.class);
+
+        assertThrows(NoUniqueBeanOfTypeException.class, () -> {
+            annotationBasedApplicationContext.getBean(DefaultUserService.class);
+        });
     }
 
     @Test
     @DisplayName("should get bean by id and clazz successfully")
-    public void shouldGetBeanByIdAndClazzSuccessfully() {
+    void shouldGetBeanByIdAndClazzSuccessfully() {
         Map<String, Bean> beanMap = new HashMap<>();
         DefaultUserService beanValue1 = new DefaultUserService();
         DefaultUserService beanValue2 = new DefaultUserService();
@@ -123,19 +130,22 @@ public class AnnotationBasedApplicationContextTest {
         assertEquals(beanValue2, actualBeanValue2);
     }
 
-    @Test(expected = NoSuchBeanDefinitionException.class)
+    @Test
     @DisplayName("should get bean by id and clazz no such bean successfully")
-    public void shouldGetBeanByIdAndClazzNoSuchBeanSuccessfully() {
+    void shouldGetBeanByIdAndClazzNoSuchBeanSuccessfully() {
         Map<String, Bean> beanMap = new HashMap<>();
         DefaultUserService beanValue = new DefaultUserService();
         beanMap.put("bean1", new Bean("bean1", beanValue));
         annotationBasedApplicationContext.setBeans(beanMap);
-        annotationBasedApplicationContext.getBean("bean1", MailService.class);
+
+        assertThrows(NoSuchBeanDefinitionException.class, () -> {
+            annotationBasedApplicationContext.getBean("bean1", MailService.class);
+        });
     }
 
     @Test
     @DisplayName("should get bean names successfully")
-    public void shouldGetBeanNamesSuccessfully() {
+    void shouldGetBeanNamesSuccessfully() {
         Map<String, Bean> beanMap = new HashMap<>();
         beanMap.put("bean3", new Bean("bean3", new DefaultUserService()));
         beanMap.put("bean4", new Bean("bean4", new DefaultUserService()));
@@ -149,7 +159,7 @@ public class AnnotationBasedApplicationContextTest {
 
     @Test
     @DisplayName("should inject value dependencies successfully")
-    public void shouldInjectValueDependenciesSuccessfully() {
+    void shouldInjectValueDependenciesSuccessfully() {
         Map<String, Bean> beanMap = new HashMap<>();
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
@@ -209,7 +219,7 @@ public class AnnotationBasedApplicationContextTest {
 
     @Test
     @DisplayName("should inject value successfully")
-    public void shouldInjectValueSuccessfully() throws ReflectiveOperationException {
+    void shouldInjectValueSuccessfully() throws ReflectiveOperationException {
         MailService mailService = new MailService();
         Method setPortMethod = MailService.class.getDeclaredMethod("setPort", Integer.TYPE);
         annotationBasedApplicationContext.injectValue(mailService, setPortMethod, "465");
@@ -219,7 +229,7 @@ public class AnnotationBasedApplicationContextTest {
 
     @Test
     @DisplayName("test Create BeanPostProcessors")
-    public void testCreateBeanPostProcessors() {
+    void testCreateBeanPostProcessors() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition beanDefinitionFactoryPostProcessor =
                 new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor");
@@ -242,7 +252,7 @@ public class AnnotationBasedApplicationContextTest {
 
     @Test
     @DisplayName("process BeanDefinitions")
-    public void processBeanDefinitions() {
+    void processBeanDefinitions() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition beanDefinitionMailService
                 = new BeanDefinition("mailServicePOP", "com.bondarenko.ioc.testclasses.reader.MailService");
@@ -266,7 +276,7 @@ public class AnnotationBasedApplicationContextTest {
 
     @Test
     @DisplayName("should Process Beans Before Initialization Successfully")
-    public void shouldProcessBeansBeforeInitializationSuccessfully() {
+    void shouldProcessBeansBeforeInitializationSuccessfully() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService = new BeanDefinition("messageService", "com.bondarenko.ioc.testclasses.reader.MessageService");
@@ -315,7 +325,7 @@ public class AnnotationBasedApplicationContextTest {
 
     @Test
     @DisplayName("should Process Beans After Initialization Successfully")
-    public void shouldProcessBeansAfterInitializationSuccessfully() {
+    void shouldProcessBeansAfterInitializationSuccessfully() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService = new BeanDefinition("messageService", "com.bondarenko.ioc.testclasses.reader.MessageService");

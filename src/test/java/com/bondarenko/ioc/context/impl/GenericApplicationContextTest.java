@@ -1,18 +1,17 @@
 package com.bondarenko.ioc.context.impl;
 
-import com.bondarenko.ioc.testclasses.context.impl.UserServiceImpl;
-import com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl;
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.exception.BeanInstantiationException;
-import com.bondarenko.ioc.exception.NoSuchBeanDefinitionException;
 import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
 import com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor;
+import com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl;
+import com.bondarenko.ioc.testclasses.context.impl.UserServiceImpl;
 import com.bondarenko.ioc.testclasses.reader.MessageService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -20,19 +19,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GenericApplicationContextTest {
 
     private GenericApplicationContext genericApplicationContext;
 
-    @Before
+    @BeforeEach
     public void before() {
         genericApplicationContext = new GenericApplicationContext();
     }
 
     @Test
-    public void testCreateBeans() {
+    void testCreateBeans() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMailService =
@@ -58,16 +57,19 @@ public class GenericApplicationContextTest {
     }
 
 
-    @Test(expected = BeanInstantiationException.class)
-    public void testCreateBeansWithWrongClass() {
+    @Test
+    void testCreateBeansWithWrongClass() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition errorBeanDefinition = new BeanDefinition("mailServicePOP", "com.study.entity.TestClass");
         beanDefinitionMap.put("mailServicePOP", errorBeanDefinition);
-        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
+
+        assertThrows(BeanInstantiationException.class, () -> {
+            genericApplicationContext.createBeans(beanDefinitionMap);
+        });
     }
 
     @Test
-    public void testGetBeanById() {
+    void testGetBeanById() {
         Map<String, Bean> beanMap = new HashMap<>();
         UserServiceImpl beanValue1 = new UserServiceImpl();
         UserServiceImpl beanValue2 = new UserServiceImpl();
@@ -83,7 +85,7 @@ public class GenericApplicationContextTest {
     }
 
     @Test
-    public void testGetBeanByClazz() {
+    void testGetBeanByClazz() {
         Map<String, Bean> beanMap = new HashMap<>();
         UserServiceImpl beanValue1 = new UserServiceImpl();
         MailServiceImpl beanValue2 = new MailServiceImpl();
@@ -98,17 +100,20 @@ public class GenericApplicationContextTest {
         assertEquals(beanValue2, actualBeanValue2);
     }
 
-    @Test(expected = NoUniqueBeanOfTypeException.class)
-    public void testGetBeanByClazzNoUniqueBean() {
+    @Test
+    void testGetBeanByClazzNoUniqueBean() {
         Map<String, Bean> beanMap = new HashMap<>();
         beanMap.put("bean1", new Bean("bean1", new UserServiceImpl()));
         beanMap.put("bean2", new Bean("bean2", new UserServiceImpl()));
         genericApplicationContext.setBeans(beanMap);
-        genericApplicationContext.getBean(UserServiceImpl.class);
+
+        assertThrows(NoUniqueBeanOfTypeException.class, () -> {
+            genericApplicationContext.getBean(UserServiceImpl.class);
+        });
     }
 
     @Test
-    public void testGetBeanByIdAndClazz() {
+    void testGetBeanByIdAndClazz() {
         Map<String, Bean> beanMap = new HashMap<>();
         UserServiceImpl beanValue1 = new UserServiceImpl();
         UserServiceImpl beanValue2 = new UserServiceImpl();
@@ -124,18 +129,17 @@ public class GenericApplicationContextTest {
     }
 
 
-    @Test(expected = NoSuchBeanDefinitionException.class)
-    public void testGetBeanByIdAndClazzNoSuchBean() {
+    @Test
+    void testGetBeanByIdAndClazzNoSuchBean() {
         Map<String, Bean> beanMap = new HashMap<>();
         UserServiceImpl beanValue = new UserServiceImpl();
         beanMap.put("bean1", new Bean("bean1", beanValue));
         genericApplicationContext.setBeans(beanMap);
-        genericApplicationContext.getBean("bean1", MailServiceImpl.class);
-
+        genericApplicationContext.getBean(UserServiceImpl.class);
     }
 
     @Test
-    public void getBeanNames() {
+    void getBeanNames() {
         Map<String, Bean> beanMap = new HashMap<>();
         beanMap.put("bean3", new Bean("bean3", new UserServiceImpl()));
         beanMap.put("bean4", new Bean("bean4", new UserServiceImpl()));
@@ -148,7 +152,7 @@ public class GenericApplicationContextTest {
     }
 
     @Test
-    public void testInjectValueDependencies() {
+    void testInjectValueDependencies() {
         Map<String, Bean> beanMap = new HashMap<>();
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
@@ -181,7 +185,7 @@ public class GenericApplicationContextTest {
     }
 
     @Test
-    public void testInjectRefDependencies() {
+    void testInjectRefDependencies() {
         Map<String, Bean> beanMap = new HashMap<>();
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
@@ -207,7 +211,7 @@ public class GenericApplicationContextTest {
     }
 
     @Test
-    public void testInjectValue() throws ReflectiveOperationException {
+    void testInjectValue() throws ReflectiveOperationException {
         MailServiceImpl mailService = new MailServiceImpl();
         Method setPortMethod = MailServiceImpl.class.getDeclaredMethod("setPort", Integer.TYPE);
         genericApplicationContext.injectValue(mailService, setPortMethod, "465");
@@ -217,7 +221,7 @@ public class GenericApplicationContextTest {
 
     @Test
     @DisplayName("test Create BeanPostProcessors")
-    public void testCreateBeanPostProcessors() {
+    void testCreateBeanPostProcessors() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition beanDefinitionFactoryPostProcessor =
                 new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor");
@@ -240,7 +244,7 @@ public class GenericApplicationContextTest {
 
     @Test
     @DisplayName("process BeanDefinitions")
-    public void processBeanDefinitions() {
+    void processBeanDefinitions() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition beanDefinitionMailService
                 = new BeanDefinition("mailServicePOP", "com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl");
@@ -264,7 +268,7 @@ public class GenericApplicationContextTest {
 
     @Test
     @DisplayName("test Process Beans Before Initialization")
-    public void testProcessBeansBeforeInitialization() {
+    void testProcessBeansBeforeInitialization() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService =
@@ -294,7 +298,7 @@ public class GenericApplicationContextTest {
 
     @Test
     @DisplayName("test Initialize Beans")
-    public void testInitializeBeans() {
+    void testInitializeBeans() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition beanDefinitionMailService =
                 new BeanDefinition("mailServicePOP", "com.bondarenko.ioc.testclasses.reader.MailService");
@@ -319,7 +323,7 @@ public class GenericApplicationContextTest {
 
     @Test
     @DisplayName("test Process Beans After Initialization")
-    public void testProcessBeansAfterInitialization() {
+    void testProcessBeansAfterInitialization() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService =

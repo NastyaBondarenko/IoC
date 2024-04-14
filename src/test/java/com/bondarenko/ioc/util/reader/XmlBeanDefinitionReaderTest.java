@@ -2,12 +2,13 @@ package com.bondarenko.ioc.util.reader;
 
 import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.util.reader.impl.XmlBeanDefinitionReader;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class XmlBeanDefinitionReaderTest {
 

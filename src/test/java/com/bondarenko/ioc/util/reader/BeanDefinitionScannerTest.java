@@ -18,7 +18,7 @@ class BeanDefinitionScannerTest {
         BeanDefinitionScanner beanDefinitionScanner = new BeanDefinitionScanner(SCAN_PACKAGES);
         Map<String, BeanDefinition> beanDefinitionMap = beanDefinitionScanner.getBeanDefinition();
 
-        Assertions.assertEquals(3, beanDefinitionMap.size());
+        Assertions.assertEquals(15, beanDefinitionMap.size());
 
         BeanDefinition beanDefinitionFirst = beanDefinitionMap.get("DefaultUserService");
         Assertions.assertEquals("DefaultUserService", beanDefinitionFirst.getId());

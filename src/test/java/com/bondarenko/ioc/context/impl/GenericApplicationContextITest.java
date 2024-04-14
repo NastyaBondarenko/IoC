@@ -1,32 +1,33 @@
 package com.bondarenko.ioc.context.impl;
 
-import com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl;
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
 import com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor;
 import com.bondarenko.ioc.testclasses.CustomBeanPostProcessor;
-import org.junit.Before;
-import org.junit.Test;
+import com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 public class GenericApplicationContextITest {
     private GenericApplicationContext genericApplicationContext;
 
-    @Before
+    @BeforeEach
     public void before() {
         genericApplicationContext = new GenericApplicationContext("context.xml");
     }
 
     @Test
     @DisplayName("Get Bean Names")
-    public void testGetBeanNames() {
+    void testGetBeanNames() {
         List<String> actualBeanNames = genericApplicationContext.getBeanNames();
         List<String> expectedBeanNames = new ArrayList<>();
 
@@ -44,7 +45,7 @@ public class GenericApplicationContextITest {
 
     @Test
     @DisplayName("get Beans by Id")
-    public void testGetBeanById() {
+    void testGetBeanById() {
         Map<String, Bean> beanMap = genericApplicationContext.getBeanMap();
         Object actualBean = genericApplicationContext.getBean("mailServicePOP");
         Object expectedBean = beanMap.get("mailServicePOP").getValue();
@@ -56,7 +57,7 @@ public class GenericApplicationContextITest {
 
     @Test
     @DisplayName("get Beans by Id And Class")
-    public void testGetBeanByIdAndClass() {
+    void testGetBeanByIdAndClass() {
         Map<String, Bean> beanMap = genericApplicationContext.getBeanMap();
         Object actualBean = genericApplicationContext.getBean("mailServicePOP", MailServiceImpl.class);
         Object expectedBean = beanMap.get("mailServicePOP").getValue();
@@ -68,7 +69,7 @@ public class GenericApplicationContextITest {
 
     @Test
     @DisplayName("get Bean Post Processors")
-    public void testGetBeanPostProcessors() {
+    void testGetBeanPostProcessors() {
         Map<String, Bean> beanPostProcessorsMap = genericApplicationContext.getBeanPostProcessorsMap();
         Bean actualBean = beanPostProcessorsMap.get("beanPostProcessor");
 
@@ -80,7 +81,7 @@ public class GenericApplicationContextITest {
 
     @Test
     @DisplayName("get Bean Factory Post Processors")
-    public void testGetBeanFactoryPostProcessors() {
+    void testGetBeanFactoryPostProcessors() {
         List<BeanFactoryPostProcessor> beanFactoryPostProcessors = genericApplicationContext.getBeanFactoryPostProcessors();
         BeanFactoryPostProcessor beanFactoryPostProcessor = beanFactoryPostProcessors.get(0);
 
