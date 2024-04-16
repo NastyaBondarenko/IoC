@@ -1,4 +1,4 @@
-package com.bondarenko.ioc.testclasses;
+package com.bondarenko.ioc.processor.impl;
 
 import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;

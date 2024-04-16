@@ -5,10 +5,10 @@ import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.exception.BeanInstantiationException;
 import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
-import com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor;
+import com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor;
 import com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl;
 import com.bondarenko.ioc.testclasses.context.impl.UserServiceImpl;
-import com.bondarenko.ioc.testclasses.reader.MessageService;
+import com.bondarenko.ioc.service.MessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -224,13 +224,13 @@ public class GenericApplicationContextTest {
     void testCreateBeanPostProcessors() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition beanDefinitionFactoryPostProcessor =
-                new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor");
+                new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor");
         BeanDefinition beanDefinitionUserService =
                 new BeanDefinition("userService", "com.bondarenko.ioc.testclasses.context.impl.UserServiceImpl");
         beanDefinitionMap.put("userService", beanDefinitionUserService);
         beanDefinitionMap.put("beanFactoryPostProcessor", beanDefinitionFactoryPostProcessor);
         BeanDefinition beanDefinitionPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.testclasses.CustomBeanPostProcessor");
+                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor");
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
 
         genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
@@ -254,7 +254,7 @@ public class GenericApplicationContextTest {
         beanDefinitionMap.put("userService", beanDefinitionUserService);
 
         BeanDefinition beanDefinitionFactoryPostProcessor =
-                new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor");
+                new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor");
         beanDefinitionMap.put("beanFactoryPostProcessor", beanDefinitionFactoryPostProcessor);
 
         genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
@@ -272,7 +272,7 @@ public class GenericApplicationContextTest {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService =
-                new BeanDefinition("messageService", "com.bondarenko.ioc.testclasses.reader.MessageService");
+                new BeanDefinition("messageService", "com.bondarenko.ioc.service.MessageService");
 
         beanDefinitionMap.put("messageService", beanDefinitionMessageService);
 
@@ -282,7 +282,7 @@ public class GenericApplicationContextTest {
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
 
         BeanDefinition beanDefinitionPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.testclasses.CustomBeanPostProcessor");
+                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor");
 
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
 
@@ -304,7 +304,7 @@ public class GenericApplicationContextTest {
                 new BeanDefinition("mailServicePOP", "com.bondarenko.ioc.testclasses.reader.MailService");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
         BeanDefinition beanDefinitionBeanPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.testclasses.CustomBeanPostProcessor");
+                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor");
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionBeanPostProcessor);
 
         Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
@@ -327,13 +327,13 @@ public class GenericApplicationContextTest {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService =
-                new BeanDefinition("messageService", "com.bondarenko.ioc.testclasses.reader.MessageService");
+                new BeanDefinition("messageService", "com.bondarenko.ioc.service.MessageService");
         beanDefinitionMap.put("messageService", beanDefinitionMessageService);
         BeanDefinition beanDefinitionMailService =
                 new BeanDefinition("mailServiceIMAP", "com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
         BeanDefinition beanDefinitionPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.testclasses.CustomBeanPostProcessor");
+                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor");
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
 
 

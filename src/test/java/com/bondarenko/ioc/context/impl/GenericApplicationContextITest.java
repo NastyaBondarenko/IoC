@@ -2,8 +2,8 @@ package com.bondarenko.ioc.context.impl;
 
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
-import com.bondarenko.ioc.testclasses.CustomBeanFactoryPostProcessor;
-import com.bondarenko.ioc.testclasses.CustomBeanPostProcessor;
+import com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor;
+import com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor;
 import com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,8 +1,8 @@
-package com.bondarenko.ioc.testclasses;
+package com.bondarenko.ioc.processor.impl;
 
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.processor.BeanPostProcessor;
-import com.bondarenko.ioc.testclasses.reader.MessageService;
+import com.bondarenko.ioc.service.MessageService;
 
 
 public class CustomBeanPostProcessor implements BeanPostProcessor {
