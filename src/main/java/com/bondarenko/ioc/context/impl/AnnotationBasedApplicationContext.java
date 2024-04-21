@@ -1,6 +1,6 @@
 package com.bondarenko.ioc.context.impl;
 
-import com.bondarenko.ioc.context.ApplicationContext;
+import com.bondarenko.ioc.annotation.Autowired;
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.exception.BeanInstantiationException;
@@ -20,12 +20,13 @@ import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Setter
 @Getter
 @NoArgsConstructor
-public class AnnotationBasedApplicationContext implements ApplicationContext {
+public class AnnotationBasedApplicationContext extends GenericApplicationContext {
 
     private Map<String, Bean> beanMap = new HashMap<>();
     private Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
@@ -89,7 +90,7 @@ public class AnnotationBasedApplicationContext implements ApplicationContext {
         return new ArrayList<>(beanMap.keySet());
     }
 
-    Map<String, Bean> createBeans(Map<String, BeanDefinition> beanDefinitionMap) {
+    public Map<String, Bean> createBeans(Map<String, BeanDefinition> beanDefinitionMap) {
         for (Map.Entry<String, BeanDefinition> beanDefinition : beanDefinitionMap.entrySet()) {
             String className = beanDefinition.getValue().getClassName();
             String key = beanDefinition.getKey();
@@ -107,17 +108,19 @@ public class AnnotationBasedApplicationContext implements ApplicationContext {
     }
 
     public void injectRefDependencies(Map<String, BeanDefinition> beanDefinitions, Map<String, Bean> beans) {
-        for (Map.Entry<String, BeanDefinition> entry : beanDefinitions.entrySet()) {
-            String key = entry.getKey();
-            Bean bean = beans.get(key);
-            Map<String, String> refDependencies = entry.getValue().getRefDependencies();
-            if (!refDependencies.isEmpty()) {
-                for (Map.Entry<String, String> refDependency : refDependencies.entrySet()) {
-                    String beanObject = refDependency.getValue();
-                    findMethodToInjectRefDependencies(bean, refDependency.getKey(), beans.get(beanObject).getValue());
-                }
-            }
-        }
+        Map<Class<?>, List<Object>> groupedBeanByClass = getGroupedBeanByClass(beans);
+
+        beans.values().forEach(bean -> {
+            Object beanObject = bean.getValue();
+            Arrays.stream(beanObject.getClass().getDeclaredFields())
+                    .filter(field -> field.isAnnotationPresent(Autowired.class))
+                    .forEach(field -> {
+                        Class<?> type = field.getType();
+                        groupedBeanByClass.getOrDefault(type, Collections.emptyList()).stream()
+                                .findFirst()
+                                .ifPresent(value -> super.findMethodToInjectRefDependencies(bean, field.getName(), value));
+                    });
+        });
     }
 
     public void injectValueDependencies(Map<String, BeanDefinition> beanDefinitionMap, Map<String, Bean> beanMap) {
@@ -230,18 +233,6 @@ public class AnnotationBasedApplicationContext implements ApplicationContext {
     }
 
     @SneakyThrows
-    private void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
-        Method[] methods = bean.getValue().getClass().getMethods();
-        String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-
-        for (Method method : methods) {
-            if (method.getName().equals(methodName)) {
-                method.invoke(bean.getValue(), value);
-            }
-        }
-    }
-
-    @SneakyThrows
     private void findMethodsToInjectValueDependencies(Bean bean, String key, String value) {
         List<Method> methods = Arrays.stream(bean.getValue().getClass().getMethods()).toList();
         String methodName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
@@ -260,5 +251,11 @@ public class AnnotationBasedApplicationContext implements ApplicationContext {
         if (parameterType.equals(Integer.TYPE.getName()) || parameterType.equals(String.class.getName())) {
             injectValue(bean.getValue(), searchedMethod, value);
         }
+    }
+
+    private Map<Class<?>, List<Object>> getGroupedBeanByClass(Map<String, Bean> beans) {
+        return beans.values().stream()
+                .collect(Collectors.groupingBy(bean -> bean.getValue().getClass(),
+                        Collectors.mapping(Bean::getValue, Collectors.toList())));
     }
 }

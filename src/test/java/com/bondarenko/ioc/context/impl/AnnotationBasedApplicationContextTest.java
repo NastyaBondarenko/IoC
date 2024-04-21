@@ -8,9 +8,9 @@ import com.bondarenko.ioc.exception.NoSuchBeanDefinitionException;
 import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
 import com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor;
+import com.bondarenko.ioc.service.MessageService;
 import com.bondarenko.ioc.testclasses.reader.DefaultUserService;
 import com.bondarenko.ioc.testclasses.reader.MailService;
-import com.bondarenko.ioc.service.MessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -191,31 +191,34 @@ public class AnnotationBasedApplicationContextTest {
         assertEquals("IMAP", mailServiceIMAP.getProtocol());
     }
 
-//    @Test
-//    @DisplayName("should inject ref dependencies successfully")
-//    public void shouldInjectRefDependenciesSuccessfully() {
-//        Map<String, Bean> beanMap = new HashMap<>();
-//        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
-//
-//        MailService mailServicePOP = new MailService();
-//        mailServicePOP.setPort(110);
-//        mailServicePOP.setProtocol("POP3");
-//        beanMap.put("mailServicePOP", new Bean("mailServicePOP", mailServicePOP));
-//
-//        DefaultUserService userService = new DefaultUserService();
-//        beanMap.put("userService", new Bean("userService", userService));
-//
-//        BeanDefinition userServiceBeanDefinition = new BeanDefinition("userService", "com.study.testclasses.DefaultUserService");
-//        Map<String, String> userServiceRefDependencies = new HashMap<>();
-//        userServiceRefDependencies.put("mailService", "mailServicePOP");
-//        userServiceBeanDefinition.setRefDependencies(userServiceRefDependencies);
-//        beanDefinitionMap.put("userService", userServiceBeanDefinition);
-//
-//        annotationBasedApplicationContext.injectRefDependencies(beanDefinitionMap, beanMap);
-//        assertNotNull(userService.getMailService());
-//        assertEquals(110, ((MailService) userService.getMailService()).getPort());
-//        assertEquals("POP3", ((MailService) userService.getMailService()).getProtocol());
-//    }
+    @Test
+    @DisplayName("should inject ref dependencies successfully")
+    void shouldInjectRefDependenciesSuccessfully() {
+
+        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+
+        BeanDefinition beanDefinitionMailService = new BeanDefinition("MailService", "com.bondarenko.ioc.testclasses.reader.MailService");
+        beanDefinitionMap.put("MailService", beanDefinitionMailService);
+
+        BeanDefinition beanDefinitionUserService = new BeanDefinition("DefaultUserService", "com.bondarenko.ioc.testclasses.reader.DefaultUserService");
+        beanDefinitionMap.put("DefaultUserService", beanDefinitionUserService);
+
+        BeanDefinition messageService = new BeanDefinition("MessageService", "com.bondarenko.ioc.testclasses.reader.MessageService");
+        beanDefinitionMap.put("MessageService", messageService);
+
+        Map<String, Bean> beanMap = annotationBasedApplicationContext.createBeans(beanDefinitionMap);
+        assertEquals(3, (beanMap.size()));
+
+        assertTrue(beanMap.containsKey("DefaultUserService"));
+        DefaultUserService userService = (DefaultUserService) beanMap.get("DefaultUserService").getValue();
+        assertNull(userService.getMailService());
+
+        annotationBasedApplicationContext.injectRefDependencies(null, beanMap);
+
+        assertNotNull(userService.getMailService());
+        assertEquals(143, (userService.getMailService()).getPort());
+        assertEquals("IMAP", (userService.getMailService()).getProtocol());
+    }
 
     @Test
     @DisplayName("should inject value successfully")

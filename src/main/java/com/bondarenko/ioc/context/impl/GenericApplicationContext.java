@@ -18,12 +18,7 @@ import lombok.SneakyThrows;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Setter
@@ -235,7 +230,7 @@ public class GenericApplicationContext implements ApplicationContext {
     }
 
     @SneakyThrows
-    private void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
+    void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
         Method[] methods = bean.getValue().getClass().getMethods();
         String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
 
