@@ -6,7 +6,6 @@ import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.exception.BeanInstantiationException;
 import com.bondarenko.ioc.exception.NoSuchBeanDefinitionException;
 import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
-import com.bondarenko.ioc.exception.ProcessPostConstructException;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
 import com.bondarenko.ioc.processor.BeanPostProcessor;
 import com.bondarenko.ioc.util.reader.BeanDefinitionReader;
@@ -16,7 +15,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 
-import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -186,34 +184,11 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     }
 
     void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
-        List<Bean> beanPostProcessors = beanPostProcessorsMap.values().stream().toList();
-        for (Bean beanPostProcessor : beanPostProcessors) {
-            BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();
-            for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
-                Bean bean = entry.getValue();
-                String beanId = bean.getId();
-
-                Object object = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, bean);
-                bean.setValue(object);
-                beanMap.put(beanId, bean);
-            }
-        }
+        super.processBeansBeforeInitialization(beanMap);
     }
 
     void initializeBeans(Map<String, Bean> beanMap) {
-        for (Bean bean : beanMap.values()) {
-            Object beanObject = bean.getValue();
-            for (Method declaredMethod : beanObject.getClass().getDeclaredMethods()) {
-                if (declaredMethod.isAnnotationPresent(PostConstruct.class)) {
-                    try {
-                        declaredMethod.setAccessible(true);
-                        declaredMethod.invoke(beanObject);
-                    } catch (Exception exception) {
-                        throw new ProcessPostConstructException("Can`t invoke method to initialize beans", exception);
-                    }
-                }
-            }
-        }
+        super.initializeBeans(beanMap);
     }
 
     void processBeansAfterInitialization(Map<String, Bean> beanMap) {

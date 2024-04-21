@@ -74,6 +74,7 @@ public class AnnotationBasedApplicationContextTest {
         DefaultUserService beanValue2 = new DefaultUserService();
         beanMap.put("bean1", new Bean("bean1", beanValue1));
         beanMap.put("bean2", new Bean("bean2", beanValue2));
+
         annotationBasedApplicationContext.setBeans(beanMap);
         DefaultUserService actualBeanValue1 = (DefaultUserService) annotationBasedApplicationContext.getBean("bean1");
         DefaultUserService actualBeanValue2 = (DefaultUserService) annotationBasedApplicationContext.getBean("bean2");
