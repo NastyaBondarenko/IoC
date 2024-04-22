@@ -51,10 +51,12 @@ public class GenericApplicationContext implements ApplicationContext {
 
     @Override
     public Object getBean(String beanId) {
-        if (beanMap.containsKey(beanId)) {
-            return beanMap.get(beanId).getValue();
-        }
-        return null;
+        return beanMap.entrySet().stream()
+                .filter(entry -> entry.getKey().equals(beanId))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .map(Bean::getValue)
+                .orElse(null);
     }
 
     @Override

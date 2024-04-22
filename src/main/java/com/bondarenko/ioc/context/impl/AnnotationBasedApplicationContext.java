@@ -4,10 +4,7 @@ import com.bondarenko.ioc.annotation.Autowired;
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.exception.BeanInstantiationException;
-import com.bondarenko.ioc.exception.NoSuchBeanDefinitionException;
-import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
-import com.bondarenko.ioc.processor.BeanPostProcessor;
 import com.bondarenko.ioc.util.reader.BeanDefinitionReader;
 import com.bondarenko.ioc.util.reader.impl.BeanDefinitionScanner;
 import lombok.Getter;
@@ -19,7 +16,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Setter
 @Getter
@@ -49,38 +45,17 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
 
     @Override
     public Object getBean(String beanId) {
-        if (beanMap.containsKey(beanId)) {
-            return beanMap.get(beanId).getValue();
-        }
-        return null;
+        return super.getBean(beanId);
     }
 
     @Override
     public <T> T getBean(Class<T> clazz) {
-        T beanValue = null;
-        for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
-            Bean bean = entry.getValue();
-            if (clazz.isAssignableFrom(bean.getValue().getClass())) {
-                if (beanValue != null) {
-                    throw new NoUniqueBeanOfTypeException("No unique bean of type" + clazz.getName());
-                }
-                beanValue = clazz.cast(bean.getValue());
-            }
-        }
-        return beanValue;
+        return super.getBean(clazz);
     }
 
     @Override
     public <T> T getBean(String id, Class<T> clazz) {
-        Class<?> beanClass = null;
-        if (beanMap.containsKey(id)) {
-            Bean bean = beanMap.get(id);
-            beanClass = bean.getValue().getClass();
-            if (Objects.equals(clazz, beanClass)) {
-                return clazz.cast(bean.getValue());
-            }
-        }
-        throw new NoSuchBeanDefinitionException(id, clazz.getName(), beanClass.getName());
+        return super.getBean(id, clazz);
     }
 
     @Override
@@ -122,35 +97,12 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     }
 
     public void injectValueDependencies(Map<String, BeanDefinition> beanDefinitionMap, Map<String, Bean> beanMap) {
-        beanMap.forEach((beanKey, beanValue) -> {
-            if (beanDefinitionMap.containsKey(beanKey)) {
-                Map<String, String> valueDependencies = beanDefinitionMap.get(beanKey).getValueDependencies();
-                Bean bean = beanMap.get(beanKey);
-                valueDependencies.forEach((key, value) -> findMethodsToInjectValueDependencies(bean, key, value));
-            }
-        });
+        super.injectValueDependencies(beanDefinitionMap, beanMap);
     }
 
     @SneakyThrows
     void injectValue(Object object, Method classMethod, String propertyValue) {
-        Method[] methods = object.getClass().getMethods();
-        String methodName = classMethod.getName();
-        Class<?>[] parameterTypes = classMethod.getParameterTypes();
-
-        List<Method> searchedMethods = Stream.of(methods)
-                .filter(method -> method.getName().equals(methodName))
-                .filter(method -> method.getParameterTypes().length == 1)
-                .toList();
-
-        if (!searchedMethods.isEmpty()) {
-            String parameterType = parameterTypes[0].getName();
-            if (parameterType.equals(Integer.TYPE.getName())) {
-                int intValueOfProperty = Integer.parseInt(propertyValue);
-                classMethod.invoke(object, intValueOfProperty);
-                return;
-            }
-        }
-        classMethod.invoke(object, propertyValue);
+        super.injectValue(object, classMethod, propertyValue);
     }
 
     void setBeans(Map<String, Bean> beans) {
@@ -159,28 +111,11 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
 
     @SneakyThrows
     void createBeanPostProcessors(Map<String, BeanDefinition> beanDefinitionMap) {
-        for (Map.Entry<String, BeanDefinition> entry : beanDefinitionMap.entrySet()) {
-            Class<?> clazz = Class.forName(entry.getValue().getClassName());
-
-            if ((BeanFactoryPostProcessor.class).isAssignableFrom(clazz)) {
-                BeanFactoryPostProcessor beanFactoryPostProcessor =
-                        (BeanFactoryPostProcessor) Class.forName(clazz.getName()).getConstructor().newInstance();
-                beanFactoryPostProcessors.add(beanFactoryPostProcessor);
-            }
-            if ((BeanPostProcessor.class).isAssignableFrom(clazz)) {
-                BeanDefinition beanDefinition = entry.getValue();
-                BeanPostProcessor beanPostProcessor =
-                        (BeanPostProcessor) Class.forName(clazz.getName()).getConstructor().newInstance();
-                Bean bean = new Bean(beanDefinition.getId(), beanPostProcessor);
-                beanPostProcessorsMap.put(entry.getKey(), bean);
-            }
-        }
+        super.createBeanPostProcessors(beanDefinitionMap);
     }
 
     void processBeanDefinitions(Map<String, BeanDefinition> beanDefinitionsMap) {
-        for (BeanFactoryPostProcessor beanFactoryPostProcessor : beanFactoryPostProcessors) {
-            beanFactoryPostProcessor.postProcessBeanFactory(beanDefinitionsMap);
-        }
+        super.processBeanDefinitions(beanDefinitionsMap);
     }
 
     void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
@@ -192,40 +127,7 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     }
 
     void processBeansAfterInitialization(Map<String, Bean> beanMap) {
-        for (Map.Entry<String, Bean> entry : beanPostProcessorsMap.entrySet()) {
-            Bean serviceBean = entry.getValue();
-            BeanPostProcessor objectPostProcessor = (BeanPostProcessor) serviceBean.getValue();
-
-            for (Map.Entry<String, Bean> beanEntry : beanMap.entrySet()) {
-                String beanId = beanEntry.getValue().getId();
-                Bean bean = beanEntry.getValue();
-
-                Object object = objectPostProcessor.postProcessAfterInitialization(beanId, bean);
-                bean.setValue(object);
-                beanMap.put(beanId, bean);
-            }
-        }
-    }
-
-    @SneakyThrows
-    private void findMethodsToInjectValueDependencies(Bean bean, String key, String value) {
-        List<Method> methods = Arrays.stream(bean.getValue().getClass().getMethods()).toList();
-        String methodName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
-
-        Class<?>[] parameterTypes = methods.stream()
-                .filter(method -> method.getName().equals(methodName))
-                .findFirst()
-                .map(Method::getParameterTypes)
-                .get();
-
-        String parameterType = Arrays.stream(parameterTypes).findFirst().get().getName();
-        Method searchedMethod = methods.stream()
-                .filter(method -> method.getName().equals(methodName))
-                .findFirst().get();
-
-        if (parameterType.equals(Integer.TYPE.getName()) || parameterType.equals(String.class.getName())) {
-            injectValue(bean.getValue(), searchedMethod, value);
-        }
+        super.processBeansAfterInitialization(beanMap);
     }
 
     private Map<Class<?>, List<Object>> getGroupedBeanByClass(Map<String, Bean> beans) {
