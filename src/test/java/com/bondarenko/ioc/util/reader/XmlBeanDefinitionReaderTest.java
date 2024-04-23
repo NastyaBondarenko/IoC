@@ -68,6 +68,5 @@ public class XmlBeanDefinitionReaderTest {
         assertEquals("143", valueDependencies3.get("port"));
         assertTrue(valueDependencies3.containsKey("protocol"));
         assertEquals("IMAP", valueDependencies3.get("protocol"));
-
     }
 }

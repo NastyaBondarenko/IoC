@@ -5,10 +5,10 @@ import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.exception.BeanInstantiationException;
 import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
-import com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor;
 import com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl;
 import com.bondarenko.ioc.testclasses.context.impl.UserServiceImpl;
-import com.bondarenko.ioc.service.MessageService;
+import com.bondarenko.ioc.testclasses.processor.CustomBeanFactoryPostProcessor;
+import com.bondarenko.ioc.testclasses.processor.MessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,13 +21,13 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GenericApplicationContextTest {
+public class ClassPathXmlApplicationContextTest {
 
-    private GenericApplicationContext genericApplicationContext;
+    private ClassPathXmlApplicationContext classPathXmlApplicationContext;
 
     @BeforeEach
     public void before() {
-        genericApplicationContext = new GenericApplicationContext();
+        classPathXmlApplicationContext = new ClassPathXmlApplicationContext();
     }
 
     @Test
@@ -43,7 +43,7 @@ public class GenericApplicationContextTest {
 
         beanDefinitionMap.put("userService", beanDefinitionUserService);
 
-        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
+        Map<String, Bean> beanMap = classPathXmlApplicationContext.createBeans(beanDefinitionMap);
 
         Bean actualMailBean = beanMap.get("mailServicePOP");
         assertNotNull(actualMailBean);
@@ -64,25 +64,25 @@ public class GenericApplicationContextTest {
         beanDefinitionMap.put("mailServicePOP", errorBeanDefinition);
 
         assertThrows(BeanInstantiationException.class, () -> {
-            genericApplicationContext.createBeans(beanDefinitionMap);
+            classPathXmlApplicationContext.createBeans(beanDefinitionMap);
         });
     }
 
-    @Test
-    void testGetBeanById() {
-        Map<String, Bean> beanMap = new HashMap<>();
-        UserServiceImpl beanValue1 = new UserServiceImpl();
-        UserServiceImpl beanValue2 = new UserServiceImpl();
-        beanMap.put("bean1", new Bean("bean1", beanValue1));
-        beanMap.put("bean2", new Bean("bean2", beanValue2));
-        genericApplicationContext.setBeans(beanMap);
-        UserServiceImpl actualBeanValue1 = (UserServiceImpl) genericApplicationContext.getBean("bean1");
-        UserServiceImpl actualBeanValue2 = (UserServiceImpl) genericApplicationContext.getBean("bean2");
-        assertNotNull(actualBeanValue1);
-        assertNotNull(actualBeanValue2);
-        assertEquals(beanValue1, actualBeanValue1);
-        assertEquals(beanValue2, actualBeanValue2);
-    }
+//    @Test
+//    void testGetBeanById() {
+//        Map<String, Bean> beanMap = new HashMap<>();
+//        UserServiceImpl beanValue1 = new UserServiceImpl();
+//        UserServiceImpl beanValue2 = new UserServiceImpl();
+//        beanMap.put("bean1", new Bean("bean1", beanValue1));
+//        beanMap.put("bean2", new Bean("bean2", beanValue2));
+//        classPathXmlApplicationContext.setBeans(beanMap);
+//        UserServiceImpl actualBeanValue1 = (UserServiceImpl) classPathXmlApplicationContext.getBean("bean1");
+//        UserServiceImpl actualBeanValue2 = (UserServiceImpl) classPathXmlApplicationContext.getBean("bean2");
+//        assertNotNull(actualBeanValue1);
+//        assertNotNull(actualBeanValue2);
+//        assertEquals(beanValue1, actualBeanValue1);
+//        assertEquals(beanValue2, actualBeanValue2);
+//    }
 
     @Test
     void testGetBeanByClazz() {
@@ -91,9 +91,9 @@ public class GenericApplicationContextTest {
         MailServiceImpl beanValue2 = new MailServiceImpl();
         beanMap.put("bean1", new Bean("bean1", beanValue1));
         beanMap.put("bean2", new Bean("bean2", beanValue2));
-        genericApplicationContext.setBeans(beanMap);
-        UserServiceImpl actualBeanValue1 = genericApplicationContext.getBean(UserServiceImpl.class);
-        MailServiceImpl actualBeanValue2 = genericApplicationContext.getBean(MailServiceImpl.class);
+        classPathXmlApplicationContext.setBeans(beanMap);
+        UserServiceImpl actualBeanValue1 = classPathXmlApplicationContext.getBean(UserServiceImpl.class);
+        MailServiceImpl actualBeanValue2 = classPathXmlApplicationContext.getBean(MailServiceImpl.class);
         assertNotNull(actualBeanValue1);
         assertNotNull(actualBeanValue2);
         assertEquals(beanValue1, actualBeanValue1);
@@ -105,10 +105,10 @@ public class GenericApplicationContextTest {
         Map<String, Bean> beanMap = new HashMap<>();
         beanMap.put("bean1", new Bean("bean1", new UserServiceImpl()));
         beanMap.put("bean2", new Bean("bean2", new UserServiceImpl()));
-        genericApplicationContext.setBeans(beanMap);
+        classPathXmlApplicationContext.setBeans(beanMap);
 
         assertThrows(NoUniqueBeanOfTypeException.class, () -> {
-            genericApplicationContext.getBean(UserServiceImpl.class);
+            classPathXmlApplicationContext.getBean(UserServiceImpl.class);
         });
     }
 
@@ -119,9 +119,9 @@ public class GenericApplicationContextTest {
         UserServiceImpl beanValue2 = new UserServiceImpl();
         beanMap.put("bean1", new Bean("bean1", beanValue1));
         beanMap.put("bean2", new Bean("bean2", beanValue2));
-        genericApplicationContext.setBeans(beanMap);
-        UserServiceImpl actualBeanValue1 = genericApplicationContext.getBean("bean1", UserServiceImpl.class);
-        UserServiceImpl actualBeanValue2 = genericApplicationContext.getBean("bean2", UserServiceImpl.class);
+        classPathXmlApplicationContext.setBeans(beanMap);
+        UserServiceImpl actualBeanValue1 = classPathXmlApplicationContext.getBean("bean1", UserServiceImpl.class);
+        UserServiceImpl actualBeanValue2 = classPathXmlApplicationContext.getBean("bean2", UserServiceImpl.class);
         assertNotNull(actualBeanValue1);
         assertNotNull(actualBeanValue2);
         assertEquals(beanValue1, actualBeanValue1);
@@ -134,8 +134,8 @@ public class GenericApplicationContextTest {
         Map<String, Bean> beanMap = new HashMap<>();
         UserServiceImpl beanValue = new UserServiceImpl();
         beanMap.put("bean1", new Bean("bean1", beanValue));
-        genericApplicationContext.setBeans(beanMap);
-        genericApplicationContext.getBean(UserServiceImpl.class);
+        classPathXmlApplicationContext.setBeans(beanMap);
+        classPathXmlApplicationContext.getBean(UserServiceImpl.class);
     }
 
     @Test
@@ -144,8 +144,8 @@ public class GenericApplicationContextTest {
         beanMap.put("bean3", new Bean("bean3", new UserServiceImpl()));
         beanMap.put("bean4", new Bean("bean4", new UserServiceImpl()));
         beanMap.put("bean5", new Bean("bean5", new UserServiceImpl()));
-        genericApplicationContext.setBeans(beanMap);
-        List<String> actualBeansNames = genericApplicationContext.getBeanNames();
+        classPathXmlApplicationContext.setBeans(beanMap);
+        List<String> actualBeansNames = classPathXmlApplicationContext.getBeanNames();
         List<String> expectedBeansNames = Arrays.asList("bean3", "bean4", "bean5");
         assertTrue(actualBeansNames.containsAll(expectedBeansNames));
         assertTrue(expectedBeansNames.containsAll(actualBeansNames));
@@ -177,7 +177,7 @@ public class GenericApplicationContextTest {
         imapServiceBeanDefinition.setValueDependencies(imapServiceValueDependencies);
         beanDefinitionMap.put("mailServiceIMAP", imapServiceBeanDefinition);
 
-        genericApplicationContext.injectValueDependencies(beanDefinitionMap, beanMap);
+        classPathXmlApplicationContext.injectValueDependencies(beanDefinitionMap, beanMap);
         assertEquals(110, mailServicePOP.getPort());
         assertEquals("POP3", mailServicePOP.getProtocol());
         assertEquals(143, mailServiceIMAP.getPort());
@@ -204,7 +204,7 @@ public class GenericApplicationContextTest {
         userServiceBeanDefinition.setRefDependencies(userServiceRefDependencies);
         beanDefinitionMap.put("userService", userServiceBeanDefinition);
 
-        genericApplicationContext.injectRefDependencies(beanDefinitionMap, beanMap);
+        classPathXmlApplicationContext.injectRefDependencies(beanDefinitionMap, beanMap);
         assertNotNull(userService.getMailService());
         assertEquals(110, ((MailServiceImpl) userService.getMailService()).getPort());
         assertEquals("POP3", ((MailServiceImpl) userService.getMailService()).getProtocol());
@@ -214,7 +214,7 @@ public class GenericApplicationContextTest {
     void testInjectValue() throws ReflectiveOperationException {
         MailServiceImpl mailService = new MailServiceImpl();
         Method setPortMethod = MailServiceImpl.class.getDeclaredMethod("setPort", Integer.TYPE);
-        genericApplicationContext.injectValue(mailService, setPortMethod, "465");
+        classPathXmlApplicationContext.injectValue(mailService, setPortMethod, "465");
         int actualPort = mailService.getPort();
         assertEquals(465, actualPort);
     }
@@ -224,18 +224,18 @@ public class GenericApplicationContextTest {
     void testCreateBeanPostProcessors() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition beanDefinitionFactoryPostProcessor =
-                new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor");
+                new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.testclasses.processor.CustomBeanFactoryPostProcessor");
         BeanDefinition beanDefinitionUserService =
-                new BeanDefinition("userService", "com.bondarenko.ioc.testclasses.context.impl.UserServiceImpl");
-        beanDefinitionMap.put("userService", beanDefinitionUserService);
+                new BeanDefinition("userServiceImap", "com.bondarenko.ioc.testclasses.context.impl.UserServiceImpl");
+        beanDefinitionMap.put("userServiceImap", beanDefinitionUserService);
         beanDefinitionMap.put("beanFactoryPostProcessor", beanDefinitionFactoryPostProcessor);
         BeanDefinition beanDefinitionPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor");
+                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor");
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
 
-        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
-        Map<String, Bean> beanPostProcessors = genericApplicationContext.getBeanPostProcessorsMap();
-        List<BeanFactoryPostProcessor> beanFactoryPostProcessors = genericApplicationContext.getBeanFactoryPostProcessors();
+        classPathXmlApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        Map<String, Bean> beanPostProcessors = classPathXmlApplicationContext.getBeanPostProcessorsMap();
+        List<BeanFactoryPostProcessor> beanFactoryPostProcessors = classPathXmlApplicationContext.getBeanFactoryPostProcessors();
 
         assertNotNull(beanPostProcessors);
         assertNotNull(beanFactoryPostProcessors);
@@ -254,13 +254,13 @@ public class GenericApplicationContextTest {
         beanDefinitionMap.put("userService", beanDefinitionUserService);
 
         BeanDefinition beanDefinitionFactoryPostProcessor =
-                new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor");
+                new BeanDefinition("beanFactoryPostProcessor", "com.bondarenko.ioc.testclasses.processor.CustomBeanFactoryPostProcessor");
         beanDefinitionMap.put("beanFactoryPostProcessor", beanDefinitionFactoryPostProcessor);
 
-        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
-        genericApplicationContext.processBeanDefinitions(beanDefinitionMap);
-        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
-        genericApplicationContext.injectValueDependencies(beanDefinitionMap, beanMap);
+        classPathXmlApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        classPathXmlApplicationContext.processBeanDefinitions(beanDefinitionMap);
+        Map<String, Bean> beanMap = classPathXmlApplicationContext.createBeans(beanDefinitionMap);
+        classPathXmlApplicationContext.injectValueDependencies(beanDefinitionMap, beanMap);
 
         MailServiceImpl mailService = (MailServiceImpl) beanMap.get("mailServicePOP").getValue();
         assertEquals(4500, mailService.getPort());
@@ -272,7 +272,7 @@ public class GenericApplicationContextTest {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService =
-                new BeanDefinition("messageService", "com.bondarenko.ioc.service.MessageService");
+                new BeanDefinition("messageService", "com.bondarenko.ioc.testclasses.processor.MessageService");
 
         beanDefinitionMap.put("messageService", beanDefinitionMessageService);
 
@@ -282,13 +282,13 @@ public class GenericApplicationContextTest {
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
 
         BeanDefinition beanDefinitionPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor");
+                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor");
 
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
 
-        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
-        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
-        genericApplicationContext.processBeansBeforeInitialization(beanMap);
+        Map<String, Bean> beanMap = classPathXmlApplicationContext.createBeans(beanDefinitionMap);
+        classPathXmlApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        classPathXmlApplicationContext.processBeansBeforeInitialization(beanMap);
 
         Bean actualMessageService = beanMap.get("messageService");
         MessageService messageService = (MessageService) actualMessageService.getValue();
@@ -304,18 +304,18 @@ public class GenericApplicationContextTest {
                 new BeanDefinition("mailServicePOP", "com.bondarenko.ioc.testclasses.reader.MailService");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
         BeanDefinition beanDefinitionBeanPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor");
+                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor");
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionBeanPostProcessor);
 
-        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
+        Map<String, Bean> beanMap = classPathXmlApplicationContext.createBeans(beanDefinitionMap);
         MailServiceImpl mailServicePOP = new MailServiceImpl();
         mailServicePOP.setPort(110);
         mailServicePOP.setProtocol("POP3");
         beanMap.put("mailServicePOP", new Bean("mailServicePOP", mailServicePOP));
 
-        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
-        genericApplicationContext.processBeansBeforeInitialization(beanMap);
-        genericApplicationContext.initializeBeans(beanMap);
+        classPathXmlApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        classPathXmlApplicationContext.processBeansBeforeInitialization(beanMap);
+        classPathXmlApplicationContext.initializeBeans(beanMap);
 
         assertEquals(4467, mailServicePOP.getPort());
         assertEquals("IMAP", mailServicePOP.getProtocol());
@@ -327,21 +327,21 @@ public class GenericApplicationContextTest {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
 
         BeanDefinition beanDefinitionMessageService =
-                new BeanDefinition("messageService", "com.bondarenko.ioc.service.MessageService");
+                new BeanDefinition("messageService", "com.bondarenko.ioc.testclasses.processor.MessageService");
         beanDefinitionMap.put("messageService", beanDefinitionMessageService);
         BeanDefinition beanDefinitionMailService =
                 new BeanDefinition("mailServiceIMAP", "com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
         BeanDefinition beanDefinitionPostProcessor =
-                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor");
+                new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor");
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionPostProcessor);
 
 
-        Map<String, Bean> beanMap = genericApplicationContext.createBeans(beanDefinitionMap);
-        genericApplicationContext.createBeanPostProcessors(beanDefinitionMap);
-        genericApplicationContext.processBeansBeforeInitialization(beanMap);
-        genericApplicationContext.initializeBeans(beanMap);
-        genericApplicationContext.processBeansAfterInitialization(beanMap);
+        Map<String, Bean> beanMap = classPathXmlApplicationContext.createBeans(beanDefinitionMap);
+        classPathXmlApplicationContext.createBeanPostProcessors(beanDefinitionMap);
+        classPathXmlApplicationContext.processBeansBeforeInitialization(beanMap);
+        classPathXmlApplicationContext.initializeBeans(beanMap);
+        classPathXmlApplicationContext.processBeansAfterInitialization(beanMap);
 
         Bean actualMessageService = beanMap.get("messageService");
         MessageService messageService = (MessageService) actualMessageService.getValue();

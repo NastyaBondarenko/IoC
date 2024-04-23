@@ -2,9 +2,9 @@ package com.bondarenko.ioc.context.impl;
 
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
-import com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor;
-import com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor;
 import com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl;
+import com.bondarenko.ioc.testclasses.processor.CustomBeanFactoryPostProcessor;
+import com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,18 +17,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
-public class GenericApplicationContextITest {
-    private GenericApplicationContext genericApplicationContext;
+public class ClassPathXmlApplicationContextITest {
+    private ClassPathXmlApplicationContext classPathXmlApplicationContext;
 
     @BeforeEach
     public void before() {
-        genericApplicationContext = new GenericApplicationContext("context.xml");
+        classPathXmlApplicationContext = new ClassPathXmlApplicationContext("context.xml");
     }
 
     @Test
     @DisplayName("Get Bean Names")
     void testGetBeanNames() {
-        List<String> actualBeanNames = genericApplicationContext.getBeanNames();
+        List<String> actualBeanNames = classPathXmlApplicationContext.getBeanNames();
         List<String> expectedBeanNames = new ArrayList<>();
 
         expectedBeanNames.add("beanFactoryPostProcessor");
@@ -43,23 +43,23 @@ public class GenericApplicationContextITest {
         assertEquals(expectedBeanNames.size(), actualBeanNames.size());
     }
 
-    @Test
-    @DisplayName("get Beans by Id")
-    void testGetBeanById() {
-        Map<String, Bean> beanMap = genericApplicationContext.getBeanMap();
-        Object actualBean = genericApplicationContext.getBean("mailServicePOP");
-        Object expectedBean = beanMap.get("mailServicePOP").getValue();
-
-        assertNotNull(actualBean);
-        assertEquals(expectedBean, actualBean);
-        assertEquals(MailServiceImpl.class, actualBean.getClass());
-    }
+//    @Test
+//    @DisplayName("get Beans by Id")
+//    void testGetBeanById() {
+//        Map<String, Bean> beanMap = classPathXmlApplicationContext.getBeanMap();
+//        Object actualBean = classPathXmlApplicationContext.getBean("mailServicePOP");
+//        Object expectedBean = beanMap.get("mailServicePOP").getValue();
+//
+//        assertNotNull(actualBean);
+//        assertEquals(expectedBean, actualBean);
+//        assertEquals(MailServiceImpl.class, actualBean.getClass());
+//    }
 
     @Test
     @DisplayName("get Beans by Id And Class")
     void testGetBeanByIdAndClass() {
-        Map<String, Bean> beanMap = genericApplicationContext.getBeanMap();
-        Object actualBean = genericApplicationContext.getBean("mailServicePOP", MailServiceImpl.class);
+        Map<String, Bean> beanMap = classPathXmlApplicationContext.getBeanMap();
+        Object actualBean = classPathXmlApplicationContext.getBean("mailServicePOP", MailServiceImpl.class);
         Object expectedBean = beanMap.get("mailServicePOP").getValue();
 
         assertNotNull(actualBean);
@@ -70,7 +70,7 @@ public class GenericApplicationContextITest {
     @Test
     @DisplayName("get Bean Post Processors")
     void testGetBeanPostProcessors() {
-        Map<String, Bean> beanPostProcessorsMap = genericApplicationContext.getBeanPostProcessorsMap();
+        Map<String, Bean> beanPostProcessorsMap = classPathXmlApplicationContext.getBeanPostProcessorsMap();
         Bean actualBean = beanPostProcessorsMap.get("beanPostProcessor");
 
         assertNotNull(beanPostProcessorsMap);
@@ -82,7 +82,7 @@ public class GenericApplicationContextITest {
     @Test
     @DisplayName("get Bean Factory Post Processors")
     void testGetBeanFactoryPostProcessors() {
-        List<BeanFactoryPostProcessor> beanFactoryPostProcessors = genericApplicationContext.getBeanFactoryPostProcessors();
+        List<BeanFactoryPostProcessor> beanFactoryPostProcessors = classPathXmlApplicationContext.getBeanFactoryPostProcessors();
         BeanFactoryPostProcessor beanFactoryPostProcessor = beanFactoryPostProcessors.get(0);
 
         assertNotNull(beanFactoryPostProcessors);

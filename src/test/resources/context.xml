@@ -17,11 +17,11 @@
         <property name="mailService" ref="mailServiceIMAP"/>
     </bean>
 
-    <bean id="messageService" class="com.bondarenko.ioc.service.MessageService">
+    <bean id="messageService" class="com.bondarenko.ioc.testclasses.processor.MessageService">
         <property name="port" value="4566"/>
         <property name="protocol" value="IMAP"/>
     </bean>
 
-    <bean id="beanPostProcessor" class="com.bondarenko.ioc.processor.impl.CustomBeanPostProcessor"/>
-    <bean id="beanFactoryPostProcessor" class="com.bondarenko.ioc.processor.impl.CustomBeanFactoryPostProcessor"/>
+    <bean id="beanPostProcessor" class="com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor"/>
+    <bean id="beanFactoryPostProcessor" class="com.bondarenko.ioc.testclasses.processor.CustomBeanFactoryPostProcessor"/>
 </beans>

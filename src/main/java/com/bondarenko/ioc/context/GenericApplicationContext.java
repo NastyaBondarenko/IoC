@@ -1,6 +1,5 @@
-package com.bondarenko.ioc.context.impl;
+package com.bondarenko.ioc.context;
 
-import com.bondarenko.ioc.context.ApplicationContext;
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.exception.BeanInstantiationException;
@@ -9,10 +8,7 @@ import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
 import com.bondarenko.ioc.exception.ProcessPostConstructException;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
 import com.bondarenko.ioc.processor.BeanPostProcessor;
-import com.bondarenko.ioc.util.reader.BeanDefinitionReader;
-import com.bondarenko.ioc.util.reader.impl.XmlBeanDefinitionReader;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 
 import javax.annotation.PostConstruct;
@@ -21,24 +17,13 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Stream;
 
-@Setter
 @Getter
-public class GenericApplicationContext implements ApplicationContext {
-
+public abstract class GenericApplicationContext {
     private Map<String, Bean> beanMap = new HashMap<>();
     private Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
     private List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
 
-    GenericApplicationContext() {
-    }
-
-    public GenericApplicationContext(String... paths) {
-        this(new XmlBeanDefinitionReader(paths));
-    }
-
-    public GenericApplicationContext(BeanDefinitionReader definitionReader) {
-        Map<String, BeanDefinition> beanDefinitions = definitionReader.getBeanDefinition();
-
+    protected void initContext(Map<String, BeanDefinition> beanDefinitions) {
         createBeanPostProcessors(beanDefinitions);
         processBeanDefinitions(beanDefinitions);
         beanMap = createBeans(beanDefinitions);
@@ -49,8 +34,7 @@ public class GenericApplicationContext implements ApplicationContext {
         processBeansAfterInitialization(beanMap);
     }
 
-    @Override
-    public Object getBean(String beanId) {
+    protected Object getBean(String beanId) {
         return beanMap.entrySet().stream()
                 .filter(entry -> entry.getKey().equals(beanId))
                 .map(Map.Entry::getValue)
@@ -59,7 +43,6 @@ public class GenericApplicationContext implements ApplicationContext {
                 .orElse(null);
     }
 
-    @Override
     public <T> T getBean(Class<T> clazz) {
         T beanValue = null;
         for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
@@ -74,7 +57,6 @@ public class GenericApplicationContext implements ApplicationContext {
         return beanValue;
     }
 
-    @Override
     public <T> T getBean(String id, Class<T> clazz) {
         Class<?> beanClass = null;
         if (beanMap.containsKey(id)) {
@@ -87,12 +69,11 @@ public class GenericApplicationContext implements ApplicationContext {
         throw new NoSuchBeanDefinitionException(id, clazz.getName(), beanClass.getName());
     }
 
-    @Override
     public List<String> getBeanNames() {
         return new ArrayList<>(beanMap.keySet());
     }
 
-    Map<String, Bean> createBeans(Map<String, BeanDefinition> beanDefinitionMap) {
+    public Map<String, Bean> createBeans(Map<String, BeanDefinition> beanDefinitionMap) {
         for (Map.Entry<String, BeanDefinition> beanDefinition : beanDefinitionMap.entrySet()) {
             Object beanObject;
             String key = beanDefinition.getKey();
@@ -133,7 +114,7 @@ public class GenericApplicationContext implements ApplicationContext {
     }
 
     @SneakyThrows
-    void injectValue(Object object, Method classMethod, String propertyValue) {
+    public void injectValue(Object object, Method classMethod, String propertyValue) {
         Method[] methods = object.getClass().getMethods();
         String methodName = classMethod.getName();
         Class<?>[] parameterTypes = classMethod.getParameterTypes();
@@ -154,12 +135,12 @@ public class GenericApplicationContext implements ApplicationContext {
         classMethod.invoke(object, propertyValue);
     }
 
-    void setBeans(Map<String, Bean> beans) {
+    public void setBeans(Map<String, Bean> beans) {
         this.beanMap = beans;
     }
 
     @SneakyThrows
-    void createBeanPostProcessors(Map<String, BeanDefinition> beanDefinitionMap) {
+    public void createBeanPostProcessors(Map<String, BeanDefinition> beanDefinitionMap) {
         for (Map.Entry<String, BeanDefinition> entry : beanDefinitionMap.entrySet()) {
             Class<?> clazz = Class.forName(entry.getValue().getClassName());
 
@@ -178,13 +159,13 @@ public class GenericApplicationContext implements ApplicationContext {
         }
     }
 
-    void processBeanDefinitions(Map<String, BeanDefinition> beanDefinitionsMap) {
+    public void processBeanDefinitions(Map<String, BeanDefinition> beanDefinitionsMap) {
         for (BeanFactoryPostProcessor beanFactoryPostProcessor : beanFactoryPostProcessors) {
             beanFactoryPostProcessor.postProcessBeanFactory(beanDefinitionsMap);
         }
     }
 
-    void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
+    public void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
         List<Bean> beanPostProcessors = beanPostProcessorsMap.values().stream().toList();
         for (Bean beanPostProcessor : beanPostProcessors) {
             BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();
@@ -199,7 +180,7 @@ public class GenericApplicationContext implements ApplicationContext {
         }
     }
 
-    void initializeBeans(Map<String, Bean> beanMap) {
+    public void initializeBeans(Map<String, Bean> beanMap) {
         for (Bean bean : beanMap.values()) {
             Object beanObject = bean.getValue();
             for (Method declaredMethod : beanObject.getClass().getDeclaredMethods()) {
@@ -215,7 +196,7 @@ public class GenericApplicationContext implements ApplicationContext {
         }
     }
 
-    void processBeansAfterInitialization(Map<String, Bean> beanMap) {
+    public void processBeansAfterInitialization(Map<String, Bean> beanMap) {
         for (Map.Entry<String, Bean> entry : beanPostProcessorsMap.entrySet()) {
             Bean serviceBean = entry.getValue();
             BeanPostProcessor objectPostProcessor = (BeanPostProcessor) serviceBean.getValue();
@@ -232,7 +213,7 @@ public class GenericApplicationContext implements ApplicationContext {
     }
 
     @SneakyThrows
-    void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
+    protected void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
         Method[] methods = bean.getValue().getClass().getMethods();
         String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
 
@@ -244,7 +225,7 @@ public class GenericApplicationContext implements ApplicationContext {
     }
 
     @SneakyThrows
-    private void findMethodsToInjectValueDependencies(Bean bean, String key, String value) {
+    void findMethodsToInjectValueDependencies(Bean bean, String key, String value) {
         List<Method> methods = Arrays.stream(bean.getValue().getClass().getMethods()).toList();
         String methodName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
 

@@ -1,24 +1,24 @@
 package com.bondarenko.ioc.util.reader;
 
 import com.bondarenko.ioc.entity.BeanDefinition;
-import com.bondarenko.ioc.util.reader.impl.BeanDefinitionScanner;
+import com.bondarenko.ioc.util.reader.impl.AnnotationBeanDefinitionReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-class BeanDefinitionScannerTest {
+class AnnotationBeanDefinitionReaderTest {
 
     private final String[] SCAN_PACKAGES = {"com.bondarenko.ioc.testclasses.reader"};
 
     @Test
     @DisplayName("should scan bean definition successfully")
     void shouldScanBeanDefinitionSuccessfully() {
-        BeanDefinitionScanner beanDefinitionScanner = new BeanDefinitionScanner(SCAN_PACKAGES);
-        Map<String, BeanDefinition> beanDefinitionMap = beanDefinitionScanner.getBeanDefinition();
+        AnnotationBeanDefinitionReader annotationBeanDefinitionReader = new AnnotationBeanDefinitionReader(SCAN_PACKAGES);
+        Map<String, BeanDefinition> beanDefinitionMap = annotationBeanDefinitionReader.getBeanDefinition();
 
-        Assertions.assertEquals(13, beanDefinitionMap.size());
+        Assertions.assertEquals(16, beanDefinitionMap.size());
 
         BeanDefinition beanDefinitionFirst = beanDefinitionMap.get("DefaultUserService");
         Assertions.assertEquals("DefaultUserService", beanDefinitionFirst.getId());
@@ -32,7 +32,7 @@ class BeanDefinitionScannerTest {
 
         BeanDefinition beanDefinitionThird = beanDefinitionMap.get("MessageService");
         Assertions.assertEquals("MessageService", beanDefinitionThird.getId());
-        Assertions.assertEquals("com.bondarenko.ioc.testclasses.reader.MessageService", beanDefinitionThird.getClassName());
+        Assertions.assertEquals("com.bondarenko.ioc.testclasses.processor.MessageService", beanDefinitionThird.getClassName());
         Assertions.assertTrue(beanDefinitionThird.getRefDependencies().isEmpty());
     }
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
-public class BeanDefinitionScanner implements BeanDefinitionReader {
+public class AnnotationBeanDefinitionReader implements BeanDefinitionReader {
     private String[] beanPackage;
 
     @Override
