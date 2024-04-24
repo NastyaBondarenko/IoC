@@ -216,7 +216,7 @@ public class AnnotationBasedApplicationContextTest {
         DefaultUserService userService = (DefaultUserService) beanMap.get("DefaultUserService").getValue();
         assertNull(userService.getMailService());
 
-        annotationBasedApplicationContext.injectRefDependencies(null, beanMap);
+        annotationBasedApplicationContext.processBeansBeforeInitialization(beanMap);
 
         assertNotNull(userService.getMailService());
         assertEquals(143, (userService.getMailService()).getPort());
@@ -298,10 +298,13 @@ public class AnnotationBasedApplicationContextTest {
         annotationBasedApplicationContext.createBeanPostProcessors(beanDefinitionMap);
         annotationBasedApplicationContext.processBeansBeforeInitialization(beanMap);
 
+
         Bean actualMessageService = beanMap.get("messageService");
         MessageService messageService = (MessageService) actualMessageService.getValue();
         assertEquals(995, messageService.getPort());
         assertEquals("POP3", messageService.getProtocol());
+
+
     }
 
     @Test
