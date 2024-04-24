@@ -34,7 +34,7 @@ public abstract class GenericApplicationContext {
         processBeansAfterInitialization(beanMap);
     }
 
-    protected Object getBean(String beanId) {
+    public Object getBean(String beanId) {
         return beanMap.entrySet().stream()
                 .filter(entry -> entry.getKey().equals(beanId))
                 .map(Map.Entry::getValue)
@@ -166,18 +166,22 @@ public abstract class GenericApplicationContext {
     }
 
     public void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
-        List<Bean> beanPostProcessors = beanPostProcessorsMap.values().stream().toList();
+        List<Bean> beanPostProcessors = getBeanPostProcessors(beanPostProcessorsMap);
         for (Bean beanPostProcessor : beanPostProcessors) {
             BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();
             for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
                 Bean bean = entry.getValue();
                 String beanId = bean.getId();
 
-                Object object = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, bean);
+                Object object = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, bean,beanMap);
                 bean.setValue(object);
                 beanMap.put(beanId, bean);
             }
         }
+    }
+
+    public List<Bean> getBeanPostProcessors(Map<String, Bean> beanPostProcessorsMap) {
+        return beanPostProcessorsMap.values().stream().toList();
     }
 
     public void initializeBeans(Map<String, Bean> beanMap) {
@@ -213,7 +217,7 @@ public abstract class GenericApplicationContext {
     }
 
     @SneakyThrows
-    protected void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
+    private void findMethodToInjectRefDependencies(Bean bean, String fieldName, Object value) {
         Method[] methods = bean.getValue().getClass().getMethods();
         String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
 
@@ -225,7 +229,7 @@ public abstract class GenericApplicationContext {
     }
 
     @SneakyThrows
-    void findMethodsToInjectValueDependencies(Bean bean, String key, String value) {
+    private void findMethodsToInjectValueDependencies(Bean bean, String key, String value) {
         List<Method> methods = Arrays.stream(bean.getValue().getClass().getMethods()).toList();
         String methodName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
 

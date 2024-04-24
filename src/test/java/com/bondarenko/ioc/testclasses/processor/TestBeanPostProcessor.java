@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Order;
 
 import java.util.Map;
 
-@Order(2)
-public class CustomBeanPostProcessor implements BeanPostProcessor {
+@Order(3)
+public class TestBeanPostProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(String beanName, Bean bean, Map<String, Bean> beanMap) {
         Object object = bean.getValue();

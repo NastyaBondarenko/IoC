@@ -355,4 +355,38 @@ public class AnnotationBasedApplicationContextTest {
         assertEquals(6000, messageService.getPort());
         assertEquals("POP3", messageService.getProtocol());
     }
+
+    @Test
+    @DisplayName("should Process Beans After Initialization Successfully")
+    void shouldSortBeanPostProcessorsByOrderSuccessfully() {
+
+        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+        BeanDefinition beanDefinitionFirst = new BeanDefinition("BeanPostProcessorFirst", "com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor");
+        beanDefinitionMap.put("BeanPostProcessorFirst", beanDefinitionFirst);
+
+        BeanDefinition beanDefinitionSecond = new BeanDefinition("BeanPostProcessorSecond", "com.bondarenko.ioc.testclasses.processor.AutowiredBeanPostProcessor");
+        beanDefinitionMap.put("BeanPostProcessorSecond", beanDefinitionSecond);
+
+        BeanDefinition beanDefinitionThird = new BeanDefinition("BeanPostProcessorSecond", "com.bondarenko.ioc.testclasses.processor.TestBeanPostProcessor");
+        beanDefinitionMap.put("beanDefinitionThird", beanDefinitionThird);
+
+
+        Map<String, Bean> beanMap = annotationBasedApplicationContext.createBeans(beanDefinitionMap);
+
+        List<Bean> actualBeanPostProcessors = annotationBasedApplicationContext.getBeanPostProcessors(beanMap);
+
+        assertFalse(actualBeanPostProcessors.isEmpty());
+
+        Bean actualBeanPostProcessorFirst = actualBeanPostProcessors.get(0);
+        assertEquals("BeanPostProcessorSecond", actualBeanPostProcessorFirst.getId());
+        assertEquals("AutowiredBeanPostProcessor", actualBeanPostProcessorFirst.getValue().getClass().getSimpleName());
+
+        Bean actualBeanPostProcessorSecond = actualBeanPostProcessors.get(1);
+        assertEquals("BeanPostProcessorFirst", actualBeanPostProcessorSecond.getId());
+        assertEquals("CustomBeanPostProcessor", actualBeanPostProcessorSecond.getValue().getClass().getSimpleName());
+
+        Bean actualBeanPostProcessorThird = actualBeanPostProcessors.get(2);
+        assertEquals("beanDefinitionThird", actualBeanPostProcessorThird.getId());
+        assertEquals("TestBeanPostProcessor", actualBeanPostProcessorThird.getValue().getClass().getSimpleName());
+    }
 }
