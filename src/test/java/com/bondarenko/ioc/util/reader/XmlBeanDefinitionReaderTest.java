@@ -40,8 +40,9 @@ public class XmlBeanDefinitionReaderTest {
         assertEquals("com.study.entity.MailService", beanDefinition1.getClassName());
 
         assertTrue(beanDefinition1.getRefDependencies().isEmpty());
+
         Map<String, String> valueDependencies1 = beanDefinition1.getValueDependencies();
-        assertEquals(2, valueDependencies1.size());
+        assertEquals(3, valueDependencies1.size());
         assertTrue(valueDependencies1.containsKey("port"));
         assertEquals("995", valueDependencies1.get("port"));
         assertTrue(valueDependencies1.containsKey("protocol"));

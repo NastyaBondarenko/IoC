@@ -15,6 +15,7 @@ import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter
@@ -22,6 +23,7 @@ public abstract class GenericApplicationContext {
     private Map<String, Bean> beanMap = new HashMap<>();
     private Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
     private List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
+    private Map<Class<?>, List<Object>> groupedBeansByClass = new HashMap<>();
 
     protected void initContext(Map<String, BeanDefinition> beanDefinitions) {
         createBeanPostProcessors(beanDefinitions);
@@ -166,6 +168,7 @@ public abstract class GenericApplicationContext {
     }
 
     public void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
+        groupBeansByClass(beanMap);
         List<Bean> beanPostProcessors = getBeanPostProcessors(beanPostProcessorsMap);
         for (Bean beanPostProcessor : beanPostProcessors) {
             BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();
@@ -173,7 +176,7 @@ public abstract class GenericApplicationContext {
                 Bean bean = entry.getValue();
                 String beanId = bean.getId();
 
-                Object object = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, bean,beanMap);
+                Object object = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, bean);
                 bean.setValue(object);
                 beanMap.put(beanId, bean);
             }
@@ -201,6 +204,7 @@ public abstract class GenericApplicationContext {
     }
 
     public void processBeansAfterInitialization(Map<String, Bean> beanMap) {
+
         for (Map.Entry<String, Bean> entry : beanPostProcessorsMap.entrySet()) {
             Bean serviceBean = entry.getValue();
             BeanPostProcessor objectPostProcessor = (BeanPostProcessor) serviceBean.getValue();
@@ -247,5 +251,11 @@ public abstract class GenericApplicationContext {
         if (parameterType.equals(Integer.TYPE.getName()) || parameterType.equals(String.class.getName())) {
             injectValue(bean.getValue(), searchedMethod, value);
         }
+    }
+
+    private void groupBeansByClass(Map<String, Bean> beanMap) {
+        groupedBeansByClass = beanMap.values().stream()
+                .collect(Collectors.groupingBy(bean -> bean.getValue().getClass(),
+                        Collectors.mapping(Bean::getValue, Collectors.toList())));
     }
 }

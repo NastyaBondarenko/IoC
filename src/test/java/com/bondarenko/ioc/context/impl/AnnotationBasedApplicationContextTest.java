@@ -210,7 +210,7 @@ public class AnnotationBasedApplicationContextTest {
         beanDefinitionMap.put("MessageService", messageService);
 
         Map<String, Bean> beanMap = annotationBasedApplicationContext.createBeans(beanDefinitionMap);
-        assertEquals(3, (beanMap.size()));
+        assertEquals(4, (beanMap.size()));
 
         assertTrue(beanMap.containsKey("DefaultUserService"));
         DefaultUserService userService = (DefaultUserService) beanMap.get("DefaultUserService").getValue();
@@ -298,7 +298,6 @@ public class AnnotationBasedApplicationContextTest {
         annotationBasedApplicationContext.createBeanPostProcessors(beanDefinitionMap);
         annotationBasedApplicationContext.processBeansBeforeInitialization(beanMap);
 
-
         Bean actualMessageService = beanMap.get("messageService");
         MessageService messageService = (MessageService) actualMessageService.getValue();
         assertEquals(995, messageService.getPort());
@@ -364,15 +363,11 @@ public class AnnotationBasedApplicationContextTest {
     void shouldSortBeanPostProcessorsByOrderSuccessfully() {
 
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
-        BeanDefinition beanDefinitionFirst = new BeanDefinition("BeanPostProcessorFirst", "com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor");
-        beanDefinitionMap.put("BeanPostProcessorFirst", beanDefinitionFirst);
+        BeanDefinition beanDefinitionFirst = new BeanDefinition("CustomBeanPostProcessor", "com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor");
+        beanDefinitionMap.put("beanDefinitionSecond", beanDefinitionFirst);
 
-        BeanDefinition beanDefinitionSecond = new BeanDefinition("BeanPostProcessorSecond", "com.bondarenko.ioc.testclasses.processor.AutowiredBeanPostProcessor");
-        beanDefinitionMap.put("BeanPostProcessorSecond", beanDefinitionSecond);
-
-        BeanDefinition beanDefinitionThird = new BeanDefinition("BeanPostProcessorSecond", "com.bondarenko.ioc.testclasses.processor.TestBeanPostProcessor");
+        BeanDefinition beanDefinitionThird = new BeanDefinition("TestBeanPostProcessor", "com.bondarenko.ioc.testclasses.processor.TestBeanPostProcessor");
         beanDefinitionMap.put("beanDefinitionThird", beanDefinitionThird);
-
 
         Map<String, Bean> beanMap = annotationBasedApplicationContext.createBeans(beanDefinitionMap);
 
@@ -381,11 +376,11 @@ public class AnnotationBasedApplicationContextTest {
         assertFalse(actualBeanPostProcessors.isEmpty());
 
         Bean actualBeanPostProcessorFirst = actualBeanPostProcessors.get(0);
-        assertEquals("BeanPostProcessorSecond", actualBeanPostProcessorFirst.getId());
+        assertEquals("autowiredBeanPostProcessor", actualBeanPostProcessorFirst.getId());
         assertEquals("AutowiredBeanPostProcessor", actualBeanPostProcessorFirst.getValue().getClass().getSimpleName());
 
         Bean actualBeanPostProcessorSecond = actualBeanPostProcessors.get(1);
-        assertEquals("BeanPostProcessorFirst", actualBeanPostProcessorSecond.getId());
+        assertEquals("beanDefinitionSecond", actualBeanPostProcessorSecond.getId());
         assertEquals("CustomBeanPostProcessor", actualBeanPostProcessorSecond.getValue().getClass().getSimpleName());
 
         Bean actualBeanPostProcessorThird = actualBeanPostProcessors.get(2);

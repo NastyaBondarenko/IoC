@@ -1,30 +1,33 @@
-package com.bondarenko.ioc.testclasses.processor;
+package com.bondarenko.ioc.processor;
 
 import com.bondarenko.ioc.annotation.Autowired;
+import com.bondarenko.ioc.annotation.Order;
 import com.bondarenko.ioc.entity.Bean;
-import com.bondarenko.ioc.processor.BeanPostProcessor;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.Order;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 
-@Order(1)
+@Order(Integer.MIN_VALUE)
+@AllArgsConstructor
 public class AutowiredBeanPostProcessor implements BeanPostProcessor {
+
+    private final Map<Class<?>, List<Object>> groupedBeansByClass;
+
+    public AutowiredBeanPostProcessor() {
+        this.groupedBeansByClass = new HashMap<>();
+    }
+
     @Override
-    public Object postProcessBeforeInitialization(String beanName, Bean bean, Map<String, Bean> beanMap) {
-        Map<Class<?>, List<Object>> groupedBeanByClass = getGroupedBeanByClass(beanMap);
+    public Object postProcessBeforeInitialization(String beanName, Bean bean) {
         Object beanObject = bean.getValue();
         Arrays.stream(beanObject.getClass().getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(Autowired.class))
                 .forEach(field -> {
                     Class<?> type = field.getType();
-                    groupedBeanByClass.getOrDefault(type, Collections.emptyList()).stream()
+                    groupedBeansByClass.getOrDefault(type, Collections.emptyList()).stream()
                             .findFirst()
                             .ifPresent(value -> findMethodToInjectRefDependencies(bean, field.getName(), value));
                 });
@@ -46,11 +49,5 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
                 method.invoke(bean.getValue(), value);
             }
         }
-    }
-
-    private Map<Class<?>, List<Object>> getGroupedBeanByClass(Map<String, Bean> beans) {
-        return beans.values().stream()
-                .collect(Collectors.groupingBy(bean -> bean.getValue().getClass(),
-                        Collectors.mapping(Bean::getValue, Collectors.toList())));
     }
 }

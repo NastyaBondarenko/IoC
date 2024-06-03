@@ -3,6 +3,7 @@ package com.bondarenko.ioc.context.impl;
 import com.bondarenko.ioc.context.GenericApplicationContext;
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.entity.BeanDefinition;
+import com.bondarenko.ioc.processor.AutowiredBeanPostProcessor;
 import com.bondarenko.ioc.util.reader.BeanDefinitionReader;
 import com.bondarenko.ioc.util.reader.impl.AnnotationBeanDefinitionReader;
 import lombok.Getter;
@@ -34,9 +35,13 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     @Override
     protected void initContext(Map<String, BeanDefinition> beanDefinitions) {
         createBeanPostProcessors(beanDefinitions);
+        addDefaultBeanPostProcessors(beanDefinitions);
+
         processBeanDefinitions(beanDefinitions);
         beanMap = createBeans(beanDefinitions);
+
         injectValueDependencies(beanDefinitions, beanMap);
+
         processBeansBeforeInitialization(beanMap);
         initializeBeans(beanMap);
         processBeansAfterInitialization(beanMap);
@@ -65,5 +70,10 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
             e.printStackTrace();
             return Integer.MAX_VALUE;
         }
+    }
+
+    private void addDefaultBeanPostProcessors(Map<String, BeanDefinition> beanDefinitions) {
+        beanDefinitions.put("autowiredBeanPostProcessor", new BeanDefinition("AutowiredBeanPostProcessor",
+                AutowiredBeanPostProcessor.class.getName()));
     }
 }

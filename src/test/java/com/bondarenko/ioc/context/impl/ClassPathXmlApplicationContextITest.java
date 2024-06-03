@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 public class ClassPathXmlApplicationContextITest {
@@ -39,8 +39,12 @@ public class ClassPathXmlApplicationContextITest {
         expectedBeanNames.add("mailServiceIMAP");
         expectedBeanNames.add("userService");
 
-        assertEquals(expectedBeanNames, actualBeanNames);
         assertEquals(expectedBeanNames.size(), actualBeanNames.size());
+
+        for (String expectedBeanName : expectedBeanNames) {
+            assertTrue(actualBeanNames.remove(expectedBeanName));
+        }
+        assertTrue(actualBeanNames.isEmpty());
     }
 
 //    @Test
