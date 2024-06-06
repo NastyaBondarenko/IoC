@@ -175,8 +175,9 @@ public abstract class GenericApplicationContext {
             for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
                 Bean bean = entry.getValue();
                 String beanId = bean.getId();
+                Object beanValue = bean.getValue();
 
-                Object object = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, bean);
+                Object object = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, beanValue);
                 bean.setValue(object);
                 beanMap.put(beanId, bean);
             }
@@ -212,8 +213,9 @@ public abstract class GenericApplicationContext {
             for (Map.Entry<String, Bean> beanEntry : beanMap.entrySet()) {
                 String beanId = beanEntry.getValue().getId();
                 Bean bean = beanEntry.getValue();
+                Object beanValue = bean.getValue();
 
-                Object object = objectPostProcessor.postProcessAfterInitialization(beanId, bean);
+                Object object = objectPostProcessor.postProcessAfterInitialization(beanId, beanValue);
                 bean.setValue(object);
                 beanMap.put(beanId, bean);
             }
