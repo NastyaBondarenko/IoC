@@ -1,5 +1,6 @@
 package com.bondarenko.ioc.context.impl;
 
+import com.bondarenko.ioc.annotation.Order;
 import com.bondarenko.ioc.context.GenericApplicationContext;
 import com.bondarenko.ioc.entity.Bean;
 import com.bondarenko.ioc.entity.BeanDefinition;
@@ -10,8 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.*;
 
 @Setter
@@ -19,8 +18,6 @@ import java.util.*;
 @NoArgsConstructor
 public class AnnotationBasedApplicationContext extends GenericApplicationContext {
 
-    private static final String ANNOTATION_ORDER = "Order";
-    private static final String ORDER_VALUE = "value";
     private Map<String, Bean> beanMap = new HashMap<>();
 
     public AnnotationBasedApplicationContext(String... paths) {
@@ -55,21 +52,8 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     }
 
     private int getOrder(Bean bean) {
-        List<Annotation> annotations = Arrays.asList(bean.getValue().getClass().getAnnotations());
-        return annotations.stream()
-                .filter(annotation -> annotation.annotationType().getSimpleName().equals(ANNOTATION_ORDER))
-                .mapToInt(this::getOrderValue)
-                .min().orElse(Integer.MAX_VALUE);
-    }
-
-    private int getOrderValue(Annotation annotation) {
-        try {
-            Method valueMethod = annotation.annotationType().getMethod(ORDER_VALUE);
-            return (int) valueMethod.invoke(annotation);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Integer.MAX_VALUE;
-        }
+        Order annotation = bean.getValue().getClass().getAnnotation(Order.class);
+        return Objects.nonNull(annotation) ? annotation.value() : Integer.MAX_VALUE;
     }
 
     private void addDefaultBeanPostProcessors(Map<String, BeanDefinition> beanDefinitions) {
