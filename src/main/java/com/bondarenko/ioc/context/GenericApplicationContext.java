@@ -21,14 +21,17 @@ import java.util.stream.Stream;
 @Getter
 public abstract class GenericApplicationContext {
     private Map<String, Bean> beanMap = new HashMap<>();
-    private Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
-    private List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
-    private Map<Class<?>, List<Object>> groupedBeansByClass = new HashMap<>();
+    protected Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
+    protected List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
+    protected Map<Class<?>, List<Object>> groupedBeansByClass = new HashMap<>();
 
     protected void initContext(Map<String, BeanDefinition> beanDefinitions) {
         createBeanPostProcessors(beanDefinitions);
         processBeanDefinitions(beanDefinitions);
+
         beanMap = createBeans(beanDefinitions);
+        groupBeansByClass(beanMap);
+
         injectValueDependencies(beanDefinitions, beanMap);
         injectRefDependencies(beanDefinitions, beanMap);
         processBeansBeforeInitialization(beanMap);
@@ -168,7 +171,6 @@ public abstract class GenericApplicationContext {
     }
 
     public void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
-        groupBeansByClass(beanMap);
         List<Bean> beanPostProcessors = getBeanPostProcessors(beanPostProcessorsMap);
         for (Bean beanPostProcessor : beanPostProcessors) {
             BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();

@@ -32,7 +32,8 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     @Override
     protected void initContext(Map<String, BeanDefinition> beanDefinitions) {
         createBeanPostProcessors(beanDefinitions);
-        addDefaultBeanPostProcessors(beanDefinitions);
+        beanPostProcessorsMap.put(AutowiredBeanPostProcessor.class.getSimpleName(),
+                new Bean("autowiredBeanPostProcessor", new AutowiredBeanPostProcessor(groupedBeansByClass)));
 
         processBeanDefinitions(beanDefinitions);
         beanMap = createBeans(beanDefinitions);
@@ -54,10 +55,5 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     private int getOrder(Bean bean) {
         Order annotation = bean.getValue().getClass().getAnnotation(Order.class);
         return Objects.nonNull(annotation) ? annotation.value() : Integer.MAX_VALUE;
-    }
-
-    private void addDefaultBeanPostProcessors(Map<String, BeanDefinition> beanDefinitions) {
-        beanDefinitions.put("autowiredBeanPostProcessor", new BeanDefinition("AutowiredBeanPostProcessor",
-                AutowiredBeanPostProcessor.class.getName()));
     }
 }

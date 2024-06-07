@@ -3,6 +3,7 @@ package com.bondarenko.ioc.processor;
 import com.bondarenko.ioc.annotation.Autowired;
 import com.bondarenko.ioc.annotation.Order;
 import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;
@@ -13,9 +14,10 @@ import static java.lang.String.format;
 
 
 @Order(Integer.MIN_VALUE)
+@AllArgsConstructor
 public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 
-    private final Map<Class<?>, List<Object>> groupedBeansByClass = new HashMap<>();
+    private final Map<Class<?>, List<Object>> groupedBeansByClass;
 
     @Override
     public Object postProcessBeforeInitialization(String beanName, Object beanValue) {
@@ -40,7 +42,7 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
         groupedBeansByClass.getOrDefault(field.getType(), Collections.emptyList())
                 .stream()
                 .findFirst()
-                .ifPresent(value -> findMethodToInjectRefDependencies(beanValue, field.getName(), value));
+                .ifPresent(value -> findMethodToInjectRefDependencies(beanValue, field, value));
     }
 
     @Override
@@ -49,14 +51,11 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
     }
 
     @SneakyThrows
-    private void findMethodToInjectRefDependencies(Object beanValue, String fieldName, Object value) {
-        Method[] methods = beanValue.getClass().getMethods();
-        String methodName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+    private void findMethodToInjectRefDependencies(Object beanValue, Field field, Object value) {
+        Class<?> clazz = beanValue.getClass();
+        String methodName = "set" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
 
-        for (Method method : methods) {
-            if (method.getName().equals(methodName)) {
-                method.invoke(beanValue, value);
-            }
-        }
+        Method declaredMethod = clazz.getDeclaredMethod(methodName, field.getType());
+        declaredMethod.invoke(beanValue, value);
     }
 }
