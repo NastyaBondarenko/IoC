@@ -8,7 +8,9 @@ import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
 import com.bondarenko.ioc.exception.ProcessPostConstructException;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
 import com.bondarenko.ioc.processor.BeanPostProcessor;
+import com.bondarenko.ioc.util.reader.BeanDefinitionReader;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 import javax.annotation.PostConstruct;
@@ -19,11 +21,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter
+@NoArgsConstructor
 public abstract class GenericApplicationContext {
     private Map<String, Bean> beanMap = new HashMap<>();
     protected Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
     protected List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
     protected Map<Class<?>, List<Object>> groupedBeansByClass = new HashMap<>();
+
+    protected GenericApplicationContext(BeanDefinitionReader definitionReader) {
+        Map<String, BeanDefinition> beanDefinitions = definitionReader.getBeanDefinition();
+        initContext(beanDefinitions);
+    }
 
     protected void initContext(Map<String, BeanDefinition> beanDefinitions) {
         createBeanPostProcessors(beanDefinitions);
@@ -63,15 +71,14 @@ public abstract class GenericApplicationContext {
     }
 
     public <T> T getBean(String id, Class<T> clazz) {
-        Class<?> beanClass = null;
         if (beanMap.containsKey(id)) {
             Bean bean = beanMap.get(id);
-            beanClass = bean.getValue().getClass();
+            Class<?> beanClass = bean.getValue().getClass();
             if (Objects.equals(clazz, beanClass)) {
                 return clazz.cast(bean.getValue());
             }
         }
-        throw new NoSuchBeanDefinitionException(id, clazz.getName(), beanClass.getName());
+        throw new NoSuchBeanDefinitionException(id, clazz.getName());
     }
 
     public List<String> getBeanNames() {

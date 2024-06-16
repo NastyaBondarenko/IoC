@@ -8,14 +8,12 @@ import com.bondarenko.ioc.processor.AutowiredBeanPostProcessor;
 import com.bondarenko.ioc.util.reader.BeanDefinitionReader;
 import com.bondarenko.ioc.util.reader.impl.AnnotationBeanDefinitionReader;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.*;
 
 @Setter
 @Getter
-@NoArgsConstructor
 public class AnnotationBasedApplicationContext extends GenericApplicationContext {
 
     private Map<String, Bean> beanMap = new HashMap<>();
@@ -25,8 +23,7 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     }
 
     public AnnotationBasedApplicationContext(BeanDefinitionReader definitionReader) {
-        Map<String, BeanDefinition> beanDefinitions = definitionReader.getBeanDefinition();
-        initContext(beanDefinitions);
+        super(definitionReader);
     }
 
     @Override
