@@ -31,7 +31,7 @@ public class ContextHandler extends DefaultHandler {
                 throw new ParseContextException("No specified class for bean");
             }
             BeanDefinition beanDefinition = new BeanDefinition(id, clazzName);
-            beanDefinitions.push(beanDefinition);
+            beanDefinitions.addLast(beanDefinition);
         } else if (qName.equalsIgnoreCase("property")) {
             String propertyName = attributes.getValue("name");
             if (propertyName == null) {
@@ -44,7 +44,7 @@ public class ContextHandler extends DefaultHandler {
                 beanDefinition.getValueDependencies().put(propertyName, propertyValue);
             }
             if (propertyRef != null) {
-                beanDefinition.getValueDependencies().put(propertyName, propertyValue);
+                beanDefinition.getRefDependencies().put(propertyName, propertyRef);
             }
         }
     }

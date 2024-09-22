@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 public class ClassPathXmlApplicationContextITest {
@@ -32,32 +31,31 @@ public class ClassPathXmlApplicationContextITest {
         List<String> expectedBeanNames = new ArrayList<>();
 
         expectedBeanNames.add("beanFactoryPostProcessor");
-        expectedBeanNames.add("mailServicePOP");
         expectedBeanNames.add("beanPostProcessor");
+        expectedBeanNames.add("mailServicePOP");
         expectedBeanNames.add("userServiceImap");
         expectedBeanNames.add("messageService");
         expectedBeanNames.add("mailServiceIMAP");
         expectedBeanNames.add("userService");
 
         assertEquals(expectedBeanNames.size(), actualBeanNames.size());
-
         for (String expectedBeanName : expectedBeanNames) {
             assertTrue(actualBeanNames.remove(expectedBeanName));
         }
         assertTrue(actualBeanNames.isEmpty());
     }
 
-//    @Test
-//    @DisplayName("get Beans by Id")
-//    void testGetBeanById() {
-//        Map<String, Bean> beanMap = classPathXmlApplicationContext.getBeanMap();
-//        Object actualBean = classPathXmlApplicationContext.getBean("mailServicePOP");
-//        Object expectedBean = beanMap.get("mailServicePOP").getValue();
-//
-//        assertNotNull(actualBean);
-//        assertEquals(expectedBean, actualBean);
-//        assertEquals(MailServiceImpl.class, actualBean.getClass());
-//    }
+    @Test
+    @DisplayName("get Beans by Id")
+    void testGetBeanById() {
+        Map<String, Bean> beanMap = classPathXmlApplicationContext.getBeanMap();
+        Object actualBean = classPathXmlApplicationContext.getBean("mailServicePOP");
+        Object expectedBean = beanMap.get("mailServicePOP").getValue();
+
+        assertNotNull(actualBean);
+        assertEquals(expectedBean, actualBean);
+        assertEquals(MailServiceImpl.class, actualBean.getClass());
+    }
 
     @Test
     @DisplayName("get Beans by Id And Class")

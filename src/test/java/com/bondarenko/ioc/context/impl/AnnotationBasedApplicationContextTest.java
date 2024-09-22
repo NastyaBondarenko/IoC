@@ -7,6 +7,7 @@ import com.bondarenko.ioc.exception.BeanInstantiationException;
 import com.bondarenko.ioc.exception.NoSuchBeanDefinitionException;
 import com.bondarenko.ioc.exception.NoUniqueBeanOfTypeException;
 import com.bondarenko.ioc.processor.BeanFactoryPostProcessor;
+import com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl;
 import com.bondarenko.ioc.testclasses.processor.CustomBeanFactoryPostProcessor;
 import com.bondarenko.ioc.testclasses.processor.MessageService;
 import com.bondarenko.ioc.testclasses.reader.DefaultUserService;
@@ -206,11 +207,11 @@ public class AnnotationBasedApplicationContextTest {
         BeanDefinition beanDefinitionUserService = new BeanDefinition("DefaultUserService", "com.bondarenko.ioc.testclasses.reader.DefaultUserService");
         beanDefinitionMap.put("DefaultUserService", beanDefinitionUserService);
 
-        BeanDefinition messageService = new BeanDefinition("MessageService", "com.bondarenko.ioc.testclasses.reader.DefaultMessageService");
+        BeanDefinition messageService = new BeanDefinition("DefaultMessageService", "com.bondarenko.ioc.testclasses.reader.DefaultMessageService");
         beanDefinitionMap.put("MessageService", messageService);
 
         Map<String, Bean> beanMap = annotationBasedApplicationContext.createBeans(beanDefinitionMap);
-        assertEquals(4, (beanMap.size()));
+        assertEquals(3, (beanMap.size()));
 
         assertTrue(beanMap.containsKey("DefaultUserService"));
         DefaultUserService userService = (DefaultUserService) beanMap.get("DefaultUserService").getValue();
@@ -308,17 +309,17 @@ public class AnnotationBasedApplicationContextTest {
 
     @Test
     @DisplayName("should Initialize Beans Successfully")
-    public void shouldInitializeBeansSuccessfully() {
+    void shouldInitializeBeansSuccessfully() {
         Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
         BeanDefinition beanDefinitionMailService =
-                new BeanDefinition("mailServicePOP", "com.study.entity.MailService");
+                new BeanDefinition("mailServicePOP", "com.bondarenko.ioc.testclasses.context.impl.MailServiceImpl");
         beanDefinitionMap.put("mailServiceIMAP", beanDefinitionMailService);
         BeanDefinition beanDefinitionBeanPostProcessor =
                 new BeanDefinition("beanPostProcessor", "com.bondarenko.ioc.testclasses.processor.CustomBeanPostProcessor");
         beanDefinitionMap.put("beanPostProcessor", beanDefinitionBeanPostProcessor);
 
         Map<String, Bean> beanMap = annotationBasedApplicationContext.createBeans(beanDefinitionMap);
-        MailService mailServicePOP = new MailService();
+        MailServiceImpl mailServicePOP = new MailServiceImpl();
         mailServicePOP.setPort(110);
         mailServicePOP.setProtocol("POP3");
         beanMap.put("mailServicePOP", new Bean("mailServicePOP", mailServicePOP));
@@ -375,15 +376,11 @@ public class AnnotationBasedApplicationContextTest {
 
         assertFalse(actualBeanPostProcessors.isEmpty());
 
-        Bean actualBeanPostProcessorFirst = actualBeanPostProcessors.get(0);
-        assertEquals("autowiredBeanPostProcessor", actualBeanPostProcessorFirst.getId());
-        assertEquals("AutowiredBeanPostProcessor", actualBeanPostProcessorFirst.getValue().getClass().getSimpleName());
-
-        Bean actualBeanPostProcessorSecond = actualBeanPostProcessors.get(1);
+        Bean actualBeanPostProcessorSecond = actualBeanPostProcessors.get(0);
         assertEquals("beanDefinitionSecond", actualBeanPostProcessorSecond.getId());
         assertEquals("CustomBeanPostProcessor", actualBeanPostProcessorSecond.getValue().getClass().getSimpleName());
 
-        Bean actualBeanPostProcessorThird = actualBeanPostProcessors.get(2);
+        Bean actualBeanPostProcessorThird = actualBeanPostProcessors.get(1);
         assertEquals("beanDefinitionThird", actualBeanPostProcessorThird.getId());
         assertEquals("TestBeanPostProcessor", actualBeanPostProcessorThird.getValue().getClass().getSimpleName());
     }

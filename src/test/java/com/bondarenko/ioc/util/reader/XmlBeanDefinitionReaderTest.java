@@ -12,25 +12,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class XmlBeanDefinitionReaderTest {
 
-    private static final String CONTEXT_XML = "<beans>\n" +
-            "    <bean id=\"mailServicePOP\" class=\"com.study.entity.MailService\">\n" +
-            "        <property name=\"port\" value=\"995\"/>\n" +
-            "        <property name=\"protocol\" value=\"POP3\"/>\n" +
-            "    </bean>\n" +
-            "\n" +
-            "    <bean id=\"userService\" class=\"com.study.entity.DefaultUserService\">\n" +
-            "        <property name=\"mailService\" ref=\"mailServicePOP\"/>\n" +
-            "    </bean>\n" +
-            "\n" +
-            "    <bean id=\"mailServiceIMAP\" class=\"com.study.entity.MailService\">\n" +
-            "        <property name=\"port\" value=\"143\"/>\n" +
-            "        <property name=\"protocol\" value=\"IMAP\"/>\n" +
-            "    </bean>\n" +
-            "</beans>";
+    private static final String CONTEXT_XML = """
+            <beans>
+                <bean id="mailServicePOP" class="com.study.entity.MailService">
+                    <property name="port" value="995"/>
+                    <property name="protocol" value="POP3"/>
+                </bean>
+
+                <bean id="userService" class="com.study.entity.DefaultUserService">
+                    <property name="mailService" ref="mailServicePOP"/>
+                </bean>
+
+                <bean id="mailServiceIMAP" class="com.study.entity.MailService">
+                    <property name="port" value="143"/>
+                    <property name="protocol" value="IMAP"/>
+                </bean>
+            </beans>
+            """;
 
 
     @Test
-    public void testGetBeanDefinitionMap() throws Exception {
+    void testGetBeanDefinitionMap() throws Exception {
         XmlBeanDefinitionReader xmlBeanDefinitionReader = new XmlBeanDefinitionReader();
         Map<String, BeanDefinition> beanDefinitionMap = xmlBeanDefinitionReader.getBeanDefinitionMap(new ByteArrayInputStream(CONTEXT_XML.getBytes()));
 
@@ -42,7 +44,7 @@ public class XmlBeanDefinitionReaderTest {
         assertTrue(beanDefinition1.getRefDependencies().isEmpty());
 
         Map<String, String> valueDependencies1 = beanDefinition1.getValueDependencies();
-        assertEquals(3, valueDependencies1.size());
+        assertEquals(2, valueDependencies1.size());
         assertTrue(valueDependencies1.containsKey("port"));
         assertEquals("995", valueDependencies1.get("port"));
         assertTrue(valueDependencies1.containsKey("protocol"));
