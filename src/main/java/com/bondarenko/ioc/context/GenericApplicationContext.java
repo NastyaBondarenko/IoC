@@ -23,10 +23,11 @@ import java.util.stream.Stream;
 @Getter
 @NoArgsConstructor
 public abstract class GenericApplicationContext {
+    public Map<Class<?>, List<Object>> groupedBeansByClass = new HashMap<>();
     private Map<String, Bean> beanMap = new HashMap<>();
     protected Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
     protected List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
-    protected Map<Class<?>, List<Object>> groupedBeansByClass = new HashMap<>();
+    protected Map<Class<?>, List<Method>> eventHandlersMap = new HashMap<>();
 
     protected GenericApplicationContext(BeanDefinitionReader definitionReader) {
         Map<String, BeanDefinition> beanDefinitions = definitionReader.getBeanDefinition();
@@ -181,9 +182,9 @@ public abstract class GenericApplicationContext {
         List<Bean> beanPostProcessors = getBeanPostProcessors(beanPostProcessorsMap);
         for (Bean beanPostProcessor : beanPostProcessors) {
             BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();
-            for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
-                Bean bean = entry.getValue();
-                String beanId = bean.getId();
+            Set<String> beanKeys = new HashSet<>(beanMap.keySet());
+            for (String beanId : beanKeys) {
+                Bean bean = beanMap.get(beanId);
                 Object beanValue = bean.getValue();
 
                 Object object = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, beanValue);
@@ -264,7 +265,7 @@ public abstract class GenericApplicationContext {
         }
     }
 
-    private void groupBeansByClass(Map<String, Bean> beanMap) {
+    public void groupBeansByClass(Map<String, Bean> beanMap) {
         groupedBeansByClass = beanMap.values().stream()
                 .collect(Collectors.groupingBy(bean -> bean.getValue().getClass(),
                         Collectors.mapping(Bean::getValue, Collectors.toList())));

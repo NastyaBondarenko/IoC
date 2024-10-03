@@ -12,12 +12,11 @@ import java.util.*;
 
 import static java.lang.String.format;
 
-
 @Order(Integer.MIN_VALUE)
 @AllArgsConstructor
 public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 
-    private final Map<Class<?>, List<Object>> groupedBeansByClass;
+    private Map<Class<?>, List<Object>> groupedBeansByClass;
 
     @Override
     public Object postProcessBeforeInitialization(String beanName, Object beanValue) {
@@ -38,7 +37,7 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
                 });
     }
 
-    private void processFieldInjection(Object beanValue, Field field) {
+    public void processFieldInjection(Object beanValue, Field field) {
         groupedBeansByClass.getOrDefault(field.getType(), Collections.emptyList())
                 .stream()
                 .findFirst()
@@ -57,5 +56,9 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 
         Method declaredMethod = clazz.getDeclaredMethod(methodName, field.getType());
         declaredMethod.invoke(beanValue, value);
+    }
+
+    public void setGroupedBeansByClass(Map<Class<?>, List<Object>> groupedBeansByClass) {
+        this.groupedBeansByClass = groupedBeansByClass;
     }
 }
