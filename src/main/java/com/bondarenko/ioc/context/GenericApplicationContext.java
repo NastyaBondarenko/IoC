@@ -27,7 +27,6 @@ public abstract class GenericApplicationContext {
     private Map<String, Bean> beanMap = new HashMap<>();
     protected Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
     protected List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
-    protected Map<Class<?>, List<Method>> eventHandlersMap = new HashMap<>();
 
     protected GenericApplicationContext(BeanDefinitionReader definitionReader) {
         Map<String, BeanDefinition> beanDefinitions = definitionReader.getBeanDefinition();
