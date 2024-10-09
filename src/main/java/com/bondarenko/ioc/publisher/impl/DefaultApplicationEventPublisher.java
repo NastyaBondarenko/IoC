@@ -1,6 +1,7 @@
 package com.bondarenko.ioc.publisher.impl;
 
 import com.bondarenko.ioc.context.GenericApplicationContext;
+import com.bondarenko.ioc.exception.EventHandlerException;
 import com.bondarenko.ioc.publisher.ApplicationEventPublisher;
 
 import java.lang.reflect.Method;
@@ -21,12 +22,12 @@ public class DefaultApplicationEventPublisher implements ApplicationEventPublish
         Class<?> eventClass = event.getClass();
         if (eventHandlersMap.containsKey(eventClass)) {
             List<Method> listeners = eventHandlersMap.get(eventClass);
-            listeners.forEach(handler -> {
+            listeners.forEach(listener -> {
                 try {
-                    handler.setAccessible(true);
-                    handler.invoke(applicationContext.getBean(handler.getDeclaringClass()), event);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    Class<?> classOfMethodOwner = listener.getDeclaringClass();
+                    listener.invoke(applicationContext.getBean(classOfMethodOwner), event);
+                } catch (Exception exception) {
+                    throw new EventHandlerException("Can`t invoke method to handle event", exception);
                 }
             });
         }

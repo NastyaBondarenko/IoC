@@ -15,14 +15,14 @@ import lombok.Setter;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 @Setter
 @Getter
 public class AnnotationBasedApplicationContext extends GenericApplicationContext {
 
     private Map<String, Bean> beanMap = new HashMap<>();
-    private final Map<Class<?>, List<Method>> eventHandlersMap = new ConcurrentHashMap<>();
+    private final Map<Class<?>, List<Method>> eventHandlersMap = new HashMap<>();
     private final DefaultApplicationEventPublisher eventPublisher;
 
 
@@ -44,14 +44,12 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
         processBeanDefinitions(beanDefinitions);
         beanMap = createBeans(beanDefinitions);
 
-        fillEventHandlersMap();
-
         injectValueDependencies(beanDefinitions, beanMap);
 
         processBeansBeforeInitialization(beanMap);
         initializeBeans(beanMap);
         processBeansAfterInitialization(beanMap);
-
+        fillEventHandlersMap();
     }
 
     @Override
@@ -92,13 +90,20 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     private void fillEventHandlersMap() {
         for (Bean bean : beanMap.values()) {
             Object beanObject = bean.getValue();
-            for (Method method : beanObject.getClass().getDeclaredMethods()) {
+            for (Method method : findMethods(beanObject)) {
                 if (method.isAnnotationPresent(EventListener.class)) {
                     Class<?> eventType = method.getAnnotation(EventListener.class).value();
                     eventHandlersMap.computeIfAbsent(eventType, k -> new ArrayList<>()).add(method);
                 }
             }
         }
+    }
+
+    private Method[] findMethods(Object beanObject) {
+        Class<?> clazz = beanObject.getClass();
+        Method[] declaredMethods = clazz.getDeclaredMethods();
+        Method[] superclassMethods = clazz.getSuperclass().getDeclaredMethods();
+        return Stream.concat(Arrays.stream(declaredMethods), Arrays.stream(superclassMethods)).toArray(Method[]::new);
     }
 
     private void registerEventPublisher() {

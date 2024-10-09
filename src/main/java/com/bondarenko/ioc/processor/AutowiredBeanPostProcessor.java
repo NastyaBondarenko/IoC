@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -20,13 +21,19 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
 
     @Override
     public Object postProcessBeforeInitialization(String beanName, Object beanValue) {
-        Arrays.stream(beanValue.getClass().getDeclaredFields())
+        Arrays.stream(findFields(beanValue))
                 .filter(field -> field.isAnnotationPresent(Autowired.class))
-                .forEach(field -> {
-                    checkForMultipleBeans(field.getType(), beanName);
-                    processFieldInjection(beanValue, field);
-                });
+                .forEach(field -> processFieldInjection(beanName, beanValue, field));
         return beanValue;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(String beanName, Object beanValue) {
+        return beanValue;
+    }
+
+    public void setGroupedBeansByClass(Map<Class<?>, List<Object>> groupedBeansByClass) {
+        this.groupedBeansByClass = groupedBeansByClass;
     }
 
     private void checkForMultipleBeans(Class<?> type, String beanName) {
@@ -37,28 +44,31 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
                 });
     }
 
-    public void processFieldInjection(Object beanValue, Field field) {
+    private void processFieldInjection(String beanName, Object beanValue, Field field) {
+        checkForMultipleBeans(field.getType(), beanName);
         groupedBeansByClass.getOrDefault(field.getType(), Collections.emptyList())
                 .stream()
                 .findFirst()
-                .ifPresent(value -> findMethodToInjectRefDependencies(beanValue, field, value));
-    }
-
-    @Override
-    public Object postProcessAfterInitialization(String beanName, Object beanValue) {
-        return beanValue;
+                .ifPresent(value -> injectDependencies(beanValue, field, value));
     }
 
     @SneakyThrows
-    private void findMethodToInjectRefDependencies(Object beanValue, Field field, Object value) {
+    private void injectDependencies(Object beanValue, Field field, Object value) {
+        Method method = findMethodToInjectRefDependencies(beanValue, field, value);
+        method.invoke(beanValue, value);
+    }
+
+    @SneakyThrows
+    private Method findMethodToInjectRefDependencies(Object beanValue, Field field, Object value) {
         Class<?> clazz = beanValue.getClass();
         String methodName = "set" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
 
-        Method declaredMethod = clazz.getDeclaredMethod(methodName, field.getType());
-        declaredMethod.invoke(beanValue, value);
+        return clazz.getDeclaredMethod(methodName, field.getType());
     }
 
-    public void setGroupedBeansByClass(Map<Class<?>, List<Object>> groupedBeansByClass) {
-        this.groupedBeansByClass = groupedBeansByClass;
+    private Field[] findFields(Object beanValue) {
+        Field[] fieldsOfSuperclass = beanValue.getClass().getSuperclass().getDeclaredFields();
+        Field[] fieldsOfBeanValue = beanValue.getClass().getDeclaredFields();
+        return Stream.concat(Arrays.stream(fieldsOfSuperclass), Arrays.stream(fieldsOfBeanValue)).toArray(Field[]::new);
     }
 }
