@@ -21,11 +21,11 @@ public class DefaultApplicationEventPublisher implements ApplicationEventPublish
     public void publishEvent(Object event) {
         Class<?> eventClass = event.getClass();
         if (eventHandlersMap.containsKey(eventClass)) {
-            List<Method> listeners = eventHandlersMap.get(eventClass);
-            listeners.forEach(listener -> {
+            List<Method> methods = eventHandlersMap.get(eventClass);
+            methods.forEach(method -> {
                 try {
-                    Class<?> classOfMethodOwner = listener.getDeclaringClass();
-                    listener.invoke(applicationContext.getBean(classOfMethodOwner), event);
+                    Class<?> classOfMethodOwner = method.getDeclaringClass();
+                    method.invoke(applicationContext.getBean(classOfMethodOwner), event);
                 } catch (Exception exception) {
                     throw new EventHandlerException("Can`t invoke method to handle event", exception);
                 }

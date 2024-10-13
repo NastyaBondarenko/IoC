@@ -23,6 +23,7 @@ public class AnnotationBeanDefinitionReader implements BeanDefinitionReader {
                                         .forPackages(packageName)
                                         .setScanners(Scanners.SubTypes.filterResultsBy(s -> true))
                         ).getSubTypesOf(Object.class).stream()
+                                .filter(clazz -> clazz.getPackage().getName().equals(packageName))
                                 .map(clazz -> new BeanDefinition(clazz.getSimpleName(), clazz.getName()))
                 ).collect(Collectors.toMap(BeanDefinition::getId, beanDefinition -> beanDefinition));
     }

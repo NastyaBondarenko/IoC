@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 @NoArgsConstructor
 public abstract class GenericApplicationContext {
     public Map<Class<?>, List<Object>> groupedBeansByClass = new HashMap<>();
-    private Map<String, Bean> beanMap = new HashMap<>();
+    protected Map<String, Bean> beanMap = new HashMap<>();
     protected Map<String, Bean> beanPostProcessorsMap = new HashMap<>();
     protected List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
 

@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 @Getter
 public class AnnotationBasedApplicationContext extends GenericApplicationContext {
 
-    private Map<String, Bean> beanMap = new HashMap<>();
     private final Map<Class<?>, List<Method>> eventHandlersMap = new HashMap<>();
     private final DefaultApplicationEventPublisher eventPublisher;
 
@@ -33,7 +32,8 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     public AnnotationBasedApplicationContext(BeanDefinitionReader definitionReader) {
         super(definitionReader);
         this.eventPublisher = new DefaultApplicationEventPublisher(eventHandlersMap, this);
-        registerEventPublisher();
+        registerEventPublisher(beanMap);
+        fillEventHandlersMap();
     }
 
     @Override
@@ -49,7 +49,6 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
         processBeansBeforeInitialization(beanMap);
         initializeBeans(beanMap);
         processBeansAfterInitialization(beanMap);
-        fillEventHandlersMap();
     }
 
     @Override
@@ -106,7 +105,7 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
         return Stream.concat(Arrays.stream(declaredMethods), Arrays.stream(superclassMethods)).toArray(Method[]::new);
     }
 
-    private void registerEventPublisher() {
+    private void registerEventPublisher(Map<String, Bean> beanMap) {
         beanMap.put(DefaultApplicationEventPublisher.class.getSimpleName(),
                 new Bean("applicationEventPublisher", eventPublisher));
     }
