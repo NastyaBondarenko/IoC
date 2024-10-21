@@ -1,4 +1,5 @@
-package com.bondarenko.ioc.testclasses.publisher.listener.caseFifth;
+package com.bondarenko.ioc.testclasses.publisher.listener;
+
 
 import com.bondarenko.ioc.annotation.Component;
 import com.bondarenko.ioc.annotation.EventListener;
@@ -10,12 +11,12 @@ import java.util.List;
 
 @Getter
 @Component
-public class EventListenerSixth {
+public class OrderListener {
 
-    final List<OrderCompletedEvent> events = new ArrayList<>();
+    final List<OrderCompletedEvent> orderCompletedEvents = new ArrayList<>();
 
     @EventListener(OrderCompletedEvent.class)
-    public void listen(OrderCompletedEvent event) {
-        events.add(event);
+    public void listen(OrderCompletedEvent orderCompletedEvent) {
+        orderCompletedEvents.add(orderCompletedEvent);
     }
 }
