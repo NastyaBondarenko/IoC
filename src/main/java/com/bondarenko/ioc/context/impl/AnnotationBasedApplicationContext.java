@@ -11,19 +11,17 @@ import com.bondarenko.ioc.publisher.impl.DefaultApplicationEventPublisher;
 import com.bondarenko.ioc.util.reader.BeanDefinitionReader;
 import com.bondarenko.ioc.util.reader.impl.AnnotationBeanDefinitionReader;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Stream;
 
-@Setter
+
 @Getter
 public class AnnotationBasedApplicationContext extends GenericApplicationContext {
 
-    private final Map<Class<?>, List<Method>> eventHandlersMap = new HashMap<>();
-    private final DefaultApplicationEventPublisher eventPublisher;
-
+    private Map<Class<?>, List<Method>> eventHandlersMap;
+    private DefaultApplicationEventPublisher eventPublisher;
 
     public AnnotationBasedApplicationContext(String... paths) {
         this(new AnnotationBeanDefinitionReader(paths));
@@ -31,19 +29,17 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
 
     public AnnotationBasedApplicationContext(BeanDefinitionReader definitionReader) {
         super(definitionReader);
-        this.eventPublisher = new DefaultApplicationEventPublisher(eventHandlersMap, this);
-        registerEventPublisher(beanMap);
-        fillEventHandlersMap();
     }
 
     @Override
     protected void initContext(Map<String, BeanDefinition> beanDefinitions) {
+        eventHandlersMap = new HashMap<>();
         createBeanPostProcessors(beanDefinitions);
         beanPostProcessorsMap.put(AutowiredBeanPostProcessor.class.getSimpleName(),
                 new Bean("autowiredBeanPostProcessor", new AutowiredBeanPostProcessor(groupedBeansByClass)));
         processBeanDefinitions(beanDefinitions);
         beanMap = createBeans(beanDefinitions);
-
+        registerEventPublisher(beanMap);
         injectValueDependencies(beanDefinitions, beanMap);
 
         processBeansBeforeInitialization(beanMap);
@@ -54,6 +50,7 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     @Override
     public void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
         groupBeansByClass(beanMap);
+        fillEventHandlersMap();
 
         List<Bean> beanPostProcessors = getBeanPostProcessors(beanPostProcessorsMap);
         for (Bean beanPostProcessor : beanPostProcessors) {
@@ -106,6 +103,7 @@ public class AnnotationBasedApplicationContext extends GenericApplicationContext
     }
 
     private void registerEventPublisher(Map<String, Bean> beanMap) {
+        this.eventPublisher = new DefaultApplicationEventPublisher(eventHandlersMap, this);
         beanMap.put(DefaultApplicationEventPublisher.class.getSimpleName(),
                 new Bean("applicationEventPublisher", eventPublisher));
     }

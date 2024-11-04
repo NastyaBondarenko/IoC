@@ -1,114 +1,72 @@
 package com.bondarenko.ioc.publisher;
 
 import com.bondarenko.ioc.context.impl.AnnotationBasedApplicationContext;
+import com.bondarenko.ioc.exception.ListenerNotFoundException;
 import com.bondarenko.ioc.testclasses.publisher.event.CustomerEvent;
-import com.bondarenko.ioc.testclasses.publisher.event.OrderCompletedEvent;
-import com.bondarenko.ioc.testclasses.publisher.listener.CustomerListener;
-import com.bondarenko.ioc.testclasses.publisher.listener.OrderListener;
+import com.bondarenko.ioc.testclasses.publisher.event.CustomerRegisteredEvent;
+import com.bondarenko.ioc.testclasses.publisher.event.PaymentProcessedEvent;
+import com.bondarenko.ioc.testclasses.publisher.listener.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class DefaultApplicationEventPublisherITest {
 
     private final String[] SCAN_PACKAGE_LISTENER = {"com.bondarenko.ioc.testclasses.publisher.listener"};
-    private final String[] SCAN_PACKAGES_CASE_SECOND = {"com.bondarenko.ioc.testclasses.publisher.listener.caseSecond"};
-    private final String[] SCAN_PACKAGES_CASE_THIRD = {"com.bondarenko.ioc.testclasses.publisher.listener.caseThird"};
-    private final String[] SCAN_PACKAGES_CASE_FOURTH = {"com.bondarenko.ioc.testclasses.publisher.listener.caseFourth"};
-    private final String[] SCAN_PACKAGES_CASE_FIFTH = {"com.bondarenko.ioc.testclasses.publisher.listener.caseFifth"};
-    private AnnotationBasedApplicationContext context;
 
     @Test
     @DisplayName("should publish event once successfully")
     void shouldPublishEventOnceSuccessfully() {
         AnnotationBasedApplicationContext context = new AnnotationBasedApplicationContext(SCAN_PACKAGE_LISTENER);
 
-        OrderListener orderListener = context.getBean("OrderListener", OrderListener.class);
-        assertTrue(orderListener.getOrderCompletedEvents().isEmpty());
+        PaymentListener paymentListener = context.getBean("PaymentListener", PaymentListener.class);
+        assertTrue(paymentListener.getPaymentProcessedEvents().isEmpty());
 
-        context.getEventPublisher().publishEvent(new OrderCompletedEvent());
+        context.getEventPublisher().publishEvent(new PaymentProcessedEvent());
 
-        assertEquals(1, orderListener.getOrderCompletedEvents().size());
+        assertEquals(1, paymentListener.getPaymentProcessedEvents().size());
     }
 
     @Test
-    @DisplayName("should publish event inside listenersSuccessfully")
+    @DisplayName("should publish event twice in listeners successfully")
+    void shouldPublishEventTwiceInListenersSuccessfully() {
+        AnnotationBasedApplicationContext context = new AnnotationBasedApplicationContext(SCAN_PACKAGE_LISTENER);
+
+        CustomerRegisteredListener customerRegisteredEvent = context.getBean("CustomerRegisteredListener", CustomerRegisteredListener.class);
+        assertTrue(customerRegisteredEvent.getCustomerRegisteredEvents().isEmpty());
+
+        context.getEventPublisher().publishEvent(new CustomerRegisteredEvent());
+
+        assertEquals(2, customerRegisteredEvent.getCustomerRegisteredEvents().size());
+    }
+
+    @Test
+    @DisplayName("should publish event inside listener successfully")
     void shouldPublishEventInsideListenerSuccessfully() {
         AnnotationBasedApplicationContext context = new AnnotationBasedApplicationContext(SCAN_PACKAGE_LISTENER);
 
-        OrderListener orderListener = context.getBean("OrderListener", OrderListener.class);
+        OrderCompletedListener orderCompletedListener = context.getBean("OrderCompletedListener", OrderCompletedListener.class);
         CustomerListener customerListener = context.getBean("CustomerListener", CustomerListener.class);
-        assertTrue(orderListener.getOrderCompletedEvents().isEmpty());
+        assertTrue(orderCompletedListener.getOrderCompletedEvents().isEmpty());
         assertTrue(customerListener.getCustomerEvents().isEmpty());
 
         context.getEventPublisher().publishEvent(new CustomerEvent());
 
-        assertEquals(1, orderListener.getOrderCompletedEvents().size());
+        assertEquals(1, customerListener.getCustomerEvents().size());
+        assertEquals(1, orderCompletedListener.getOrderCompletedEvents().size());
     }
-//
-//    @Test
-//    @DisplayName("should publish different events in two listeners successfully")
-//    void shouldPublishDifferentEventsInTwoListenersSuccessfully() {
-//        context = new AnnotationBasedApplicationContext(SCAN_PACKAGES_CASE_THIRD);
-//        publisher = new DefaultApplicationEventPublisher(context.getEventHandlersMap(), context);
-//
-//        EventListenerThird eventListenerThird = (EventListenerThird) context.getBean("EventListenerThird");
-//
-//        assertTrue(eventListenerThird.getEvents().isEmpty());
-//
-//        publisher.publishEvent(new EventFirst());
-//        publisher.publishEvent(new EventSecond());
-//
-//        assertEquals(2, eventListenerThird.getEvents().size());
-//    }
-//
-//    @Test
-//    @DisplayName("should not publish event when method without annotation listener ")
-//    void shouldNotPublishEventWhenMethodWithoutAnnotationListener() {
-//        context = new AnnotationBasedApplicationContext(SCAN_PACKAGES_CASE_FOURTH);
-//        publisher = new DefaultApplicationEventPublisher(context.getEventHandlersMap(), context);
-//
-//        EventListenerFourth eventListenerFourth = (EventListenerFourth) context.getBean("EventListenerFourth");
-//
-//        assertTrue(eventListenerFourth.getEvents().isEmpty());
-//
-//        publisher.publishEvent(new EventFirst());
-//
-//        assertTrue(eventListenerFourth.getEvents().isEmpty());
-//    }
-//
-//    @Test
-//    @DisplayName("should not publish event when method without annotation listener ")
-//    void shouldPublishEventWhenMethodWithoutAnnotationListener() {
-//        context = new AnnotationBasedApplicationContext(SCAN_PACKAGES_CASE_FOURTH);
-//        publisher = new DefaultApplicationEventPublisher(context.getEventHandlersMap(), context);
-//
-//        EventListenerFourth eventListenerFourth = (EventListenerFourth) context.getBean("EventListenerFourth");
-//
-//        assertTrue(eventListenerFourth.getEvents().isEmpty());
-//
-//        publisher.publishEvent(new EventFirst());
-//
-//        assertTrue(eventListenerFourth.getEvents().isEmpty());
-//    }
-//
-//    @Test
-//    @DisplayName("should publish the same event in two listeners successfully")
-//    void shouldPublishTheSameEventInDifferentListenersSuccessfully() {
-//        context = new AnnotationBasedApplicationContext(SCAN_PACKAGES_CASE_FIFTH);
-//        publisher = new DefaultApplicationEventPublisher(context.getEventHandlersMap(), context);
-//
-//        EventListenerFifth eventListenerFifth = (EventListenerFifth) context.getBean("EventListenerFifth");
-//        EventListenerSixth eventListenerSixth = (EventListenerSixth) context.getBean("EventListenerSixth");
-//
-//        assertTrue(eventListenerFifth.getEvents().isEmpty());
-//        assertTrue(eventListenerSixth.getEvents().isEmpty());
-//
-//        publisher.publishEvent(new EventFirst());
-//
-//        assertEquals(1, eventListenerSixth.getEvents().size());
-//        assertEquals(1, eventListenerFifth.getEvents().size());
-//    }
+
+    @Test
+    @DisplayName("should throw exception when publish event without annotation listener")
+    void shouldThrowExceptionWhenPublishEventWithoutAnnotationListener() {
+        AnnotationBasedApplicationContext context = new AnnotationBasedApplicationContext(SCAN_PACKAGE_LISTENER);
+
+        OrderCancelledListener orderCancelledListener = context.getBean("OrderCancelledListener", OrderCancelledListener.class);
+        assertTrue(orderCancelledListener.getOrderCancelledEvents().isEmpty());
+
+        assertThrows(ListenerNotFoundException.class, () -> {
+            context.getEventPublisher().publishEvent(new OrderCancelledListener());
+        });
+    }
 }

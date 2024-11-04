@@ -17,7 +17,6 @@ import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter
@@ -213,20 +212,34 @@ public abstract class GenericApplicationContext {
         }
     }
 
+//    public void processBeansAfterInitialization(Map<String, Bean> beanMap) {
+//
+//        for (Map.Entry<String, Bean> entry : beanPostProcessorsMap.entrySet()) {
+//            Bean serviceBean = entry.getValue();
+//            BeanPostProcessor objectPostProcessor = (BeanPostProcessor) serviceBean.getValue();
+//
+//            for (Map.Entry<String, Bean> beanEntry : beanMap.entrySet()) {
+//                String beanId = beanEntry.getValue().getId();
+//                Bean bean = beanEntry.getValue();
+//                Object beanValue = bean.getValue();
+//
+//                Object object = objectPostProcessor.postProcessAfterInitialization(beanId, beanValue);
+//                bean.setValue(object);
+//                beanMap.put(beanId, bean);
+//            }
+//        }
+//    }
+
     public void processBeansAfterInitialization(Map<String, Bean> beanMap) {
+        List<String> beanKeys = new ArrayList<>(beanMap.keySet());
+        for (String beanId : beanKeys) {
+            Bean bean = beanMap.get(beanId);
+            Object beanValue = bean.getValue();
 
-        for (Map.Entry<String, Bean> entry : beanPostProcessorsMap.entrySet()) {
-            Bean serviceBean = entry.getValue();
-            BeanPostProcessor objectPostProcessor = (BeanPostProcessor) serviceBean.getValue();
-
-            for (Map.Entry<String, Bean> beanEntry : beanMap.entrySet()) {
-                String beanId = beanEntry.getValue().getId();
-                Bean bean = beanEntry.getValue();
-                Object beanValue = bean.getValue();
-
-                Object object = objectPostProcessor.postProcessAfterInitialization(beanId, beanValue);
-                bean.setValue(object);
-                beanMap.put(beanId, bean);
+            for (Map.Entry<String, Bean> entry : beanPostProcessorsMap.entrySet()) {
+                BeanPostProcessor objectPostProcessor = (BeanPostProcessor) entry.getValue().getValue();
+                Object processedBean = objectPostProcessor.postProcessAfterInitialization(beanId, beanValue);
+                bean.setValue(processedBean);
             }
         }
     }
@@ -265,8 +278,16 @@ public abstract class GenericApplicationContext {
     }
 
     public void groupBeansByClass(Map<String, Bean> beanMap) {
-        groupedBeansByClass = beanMap.values().stream()
-                .collect(Collectors.groupingBy(bean -> bean.getValue().getClass(),
-                        Collectors.mapping(Bean::getValue, Collectors.toList())));
+        groupedBeansByClass = new HashMap<>();
+
+        beanMap.values().forEach(bean -> {
+            Object beanValue = bean.getValue();
+            Class<?> beanClass = beanValue.getClass();
+
+            Stream.concat(Stream.of(beanClass), Arrays.stream(beanClass.getInterfaces()))
+                    .forEach(type -> groupedBeansByClass
+                            .computeIfAbsent(type, k -> new ArrayList<>())
+                            .add(beanValue));
+        });
     }
 }

@@ -1,4 +1,4 @@
 package com.bondarenko.ioc.testclasses.publisher.event;
 
-public class EventSecond {
+public class OrderCancelledEvent {
 }

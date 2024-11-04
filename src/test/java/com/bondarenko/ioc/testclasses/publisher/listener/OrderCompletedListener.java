@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Component
-public class OrderListener {
+public class OrderCompletedListener {
 
     final List<OrderCompletedEvent> orderCompletedEvents = new ArrayList<>();
 
