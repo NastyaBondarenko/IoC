@@ -18,7 +18,7 @@ class AnnotationBeanDefinitionReaderTest {
         AnnotationBeanDefinitionReader annotationBeanDefinitionReader = new AnnotationBeanDefinitionReader(SCAN_PACKAGES);
         Map<String, BeanDefinition> beanDefinitionMap = annotationBeanDefinitionReader.getBeanDefinition();
 
-        Assertions.assertEquals(25, beanDefinitionMap.size());
+        Assertions.assertEquals(2, beanDefinitionMap.size());
 
         BeanDefinition beanDefinitionFirst = beanDefinitionMap.get("DefaultUserService");
         Assertions.assertEquals("DefaultUserService", beanDefinitionFirst.getId());

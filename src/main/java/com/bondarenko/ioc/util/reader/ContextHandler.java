@@ -1,4 +1,4 @@
-package com.bondarenko.ioc.util;
+package com.bondarenko.ioc.util.reader;
 
 import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.exception.ParseContextException;

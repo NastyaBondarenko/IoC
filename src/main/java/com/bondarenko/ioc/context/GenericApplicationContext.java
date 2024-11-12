@@ -37,10 +37,12 @@ public abstract class GenericApplicationContext {
         processBeanDefinitions(beanDefinitions);
 
         beanMap = createBeans(beanDefinitions);
-        groupBeansByClass(beanMap);
 
         injectValueDependencies(beanDefinitions, beanMap);
         injectRefDependencies(beanDefinitions, beanMap);
+
+        groupBeansByClass(beanMap);
+
         processBeansBeforeInitialization(beanMap);
         initializeBeans(beanMap);
         processBeansAfterInitialization(beanMap);
@@ -177,24 +179,30 @@ public abstract class GenericApplicationContext {
     }
 
     public void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
-        List<Bean> beanPostProcessors = getBeanPostProcessors(beanPostProcessorsMap);
-        for (Bean beanPostProcessor : beanPostProcessors) {
-            BeanPostProcessor objectBeanPostProcessor = (BeanPostProcessor) beanPostProcessor.getValue();
+        List<BeanPostProcessor> beanPostProcessors = getBeanPostProcessors(beanMap);
+        for (BeanPostProcessor beanPostProcessor : beanPostProcessors) {
+
+
             Set<String> beanKeys = new HashSet<>(beanMap.keySet());
             for (String beanId : beanKeys) {
                 Bean bean = beanMap.get(beanId);
                 Object beanValue = bean.getValue();
 
-                Object object = objectBeanPostProcessor.postProcessBeforeInitialization(beanId, beanValue);
+                Object object = beanPostProcessor.postProcessBeforeInitialization(beanId, beanValue);
                 bean.setValue(object);
                 beanMap.put(beanId, bean);
             }
         }
     }
 
-    public List<Bean> getBeanPostProcessors(Map<String, Bean> beanPostProcessorsMap) {
-        return beanPostProcessorsMap.values().stream().toList();
+    public List<BeanPostProcessor> getBeanPostProcessors(Map<String, Bean> beanMap) {
+        return beanMap.values().stream()
+                .filter(bean -> BeanPostProcessor.class.isAssignableFrom(bean.getValue().getClass()))
+                .sorted(Comparator.comparingInt(this::getOrder))
+                .map(bean -> (BeanPostProcessor) bean.getValue())
+                .toList();
     }
+
 
     public void initializeBeans(Map<String, Bean> beanMap) {
         for (Bean bean : beanMap.values()) {
@@ -212,24 +220,6 @@ public abstract class GenericApplicationContext {
         }
     }
 
-//    public void processBeansAfterInitialization(Map<String, Bean> beanMap) {
-//
-//        for (Map.Entry<String, Bean> entry : beanPostProcessorsMap.entrySet()) {
-//            Bean serviceBean = entry.getValue();
-//            BeanPostProcessor objectPostProcessor = (BeanPostProcessor) serviceBean.getValue();
-//
-//            for (Map.Entry<String, Bean> beanEntry : beanMap.entrySet()) {
-//                String beanId = beanEntry.getValue().getId();
-//                Bean bean = beanEntry.getValue();
-//                Object beanValue = bean.getValue();
-//
-//                Object object = objectPostProcessor.postProcessAfterInitialization(beanId, beanValue);
-//                bean.setValue(object);
-//                beanMap.put(beanId, bean);
-//            }
-//        }
-//    }
-
     public void processBeansAfterInitialization(Map<String, Bean> beanMap) {
         List<String> beanKeys = new ArrayList<>(beanMap.keySet());
         for (String beanId : beanKeys) {
@@ -242,6 +232,24 @@ public abstract class GenericApplicationContext {
                 bean.setValue(processedBean);
             }
         }
+    }
+
+    public void groupBeansByClass(Map<String, Bean> beanMap) {
+        groupedBeansByClass = new HashMap<>();
+
+        beanMap.values().forEach(bean -> {
+            Object beanValue = bean.getValue();
+            Class<?> beanClass = beanValue.getClass();
+
+            Stream.concat(Stream.of(beanClass), Arrays.stream(beanClass.getInterfaces()))
+                    .forEach(type -> groupedBeansByClass
+                            .computeIfAbsent(type, k -> new ArrayList<>())
+                            .add(beanValue));
+        });
+    }
+
+    public int getOrder(Bean bean) {
+        return 0;
     }
 
     @SneakyThrows
@@ -275,19 +283,5 @@ public abstract class GenericApplicationContext {
         if (parameterType.equals(Integer.TYPE.getName()) || parameterType.equals(String.class.getName())) {
             injectValue(bean.getValue(), searchedMethod, value);
         }
-    }
-
-    public void groupBeansByClass(Map<String, Bean> beanMap) {
-        groupedBeansByClass = new HashMap<>();
-
-        beanMap.values().forEach(bean -> {
-            Object beanValue = bean.getValue();
-            Class<?> beanClass = beanValue.getClass();
-
-            Stream.concat(Stream.of(beanClass), Arrays.stream(beanClass.getInterfaces()))
-                    .forEach(type -> groupedBeansByClass
-                            .computeIfAbsent(type, k -> new ArrayList<>())
-                            .add(beanValue));
-        });
     }
 }

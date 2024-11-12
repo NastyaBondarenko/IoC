@@ -23,7 +23,7 @@ class DefaultApplicationEventPublisherITest {
         PaymentListener paymentListener = context.getBean("PaymentListener", PaymentListener.class);
         assertTrue(paymentListener.getPaymentProcessedEvents().isEmpty());
 
-        context.getEventPublisher().publishEvent(new PaymentProcessedEvent());
+        context.getBean(ApplicationEventPublisher.class).publishEvent(new PaymentProcessedEvent());
 
         assertEquals(1, paymentListener.getPaymentProcessedEvents().size());
     }
@@ -36,7 +36,7 @@ class DefaultApplicationEventPublisherITest {
         CustomerRegisteredListener customerRegisteredEvent = context.getBean("CustomerRegisteredListener", CustomerRegisteredListener.class);
         assertTrue(customerRegisteredEvent.getCustomerRegisteredEvents().isEmpty());
 
-        context.getEventPublisher().publishEvent(new CustomerRegisteredEvent());
+        context.getBean(ApplicationEventPublisher.class).publishEvent(new CustomerRegisteredEvent());
 
         assertEquals(2, customerRegisteredEvent.getCustomerRegisteredEvents().size());
     }
@@ -51,7 +51,7 @@ class DefaultApplicationEventPublisherITest {
         assertTrue(orderCompletedListener.getOrderCompletedEvents().isEmpty());
         assertTrue(customerListener.getCustomerEvents().isEmpty());
 
-        context.getEventPublisher().publishEvent(new CustomerEvent());
+        context.getBean(ApplicationEventPublisher.class).publishEvent(new CustomerEvent());
 
         assertEquals(1, customerListener.getCustomerEvents().size());
         assertEquals(1, orderCompletedListener.getOrderCompletedEvents().size());
@@ -66,7 +66,7 @@ class DefaultApplicationEventPublisherITest {
         assertTrue(orderCancelledListener.getOrderCancelledEvents().isEmpty());
 
         assertThrows(ListenerNotFoundException.class, () -> {
-            context.getEventPublisher().publishEvent(new OrderCancelledListener());
+            context.getBean(ApplicationEventPublisher.class).publishEvent(new OrderCancelledListener());
         });
     }
 }

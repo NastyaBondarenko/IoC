@@ -2,7 +2,7 @@ package com.bondarenko.ioc.util.reader.impl;
 
 import com.bondarenko.ioc.entity.BeanDefinition;
 import com.bondarenko.ioc.exception.ParseContextException;
-import com.bondarenko.ioc.util.ContextHandler;
+import com.bondarenko.ioc.util.reader.ContextHandler;
 import com.bondarenko.ioc.util.reader.BeanDefinitionReader;
 import org.xml.sax.SAXException;
 
