@@ -36,7 +36,7 @@ public abstract class GenericApplicationContext {
         createBeanPostProcessors(beanDefinitions);
         processBeanDefinitions(beanDefinitions);
 
-        beanMap = createBeans(beanDefinitions);
+        createBeans(beanDefinitions);
 
         injectValueDependencies(beanDefinitions, beanMap);
         injectRefDependencies(beanDefinitions, beanMap);
@@ -179,9 +179,9 @@ public abstract class GenericApplicationContext {
     }
 
     public void processBeansBeforeInitialization(Map<String, Bean> beanMap) {
+
         List<BeanPostProcessor> beanPostProcessors = getBeanPostProcessors(beanMap);
         for (BeanPostProcessor beanPostProcessor : beanPostProcessors) {
-
 
             Set<String> beanKeys = new HashSet<>(beanMap.keySet());
             for (String beanId : beanKeys) {
@@ -202,7 +202,6 @@ public abstract class GenericApplicationContext {
                 .map(bean -> (BeanPostProcessor) bean.getValue())
                 .toList();
     }
-
 
     public void initializeBeans(Map<String, Bean> beanMap) {
         for (Bean bean : beanMap.values()) {
@@ -235,8 +234,6 @@ public abstract class GenericApplicationContext {
     }
 
     public void groupBeansByClass(Map<String, Bean> beanMap) {
-        groupedBeansByClass = new HashMap<>();
-
         beanMap.values().forEach(bean -> {
             Object beanValue = bean.getValue();
             Class<?> beanClass = beanValue.getClass();

@@ -32,10 +32,6 @@ public class AutowiredBeanPostProcessor implements BeanPostProcessor {
         return beanValue;
     }
 
-    public void setGroupedBeansByClass(Map<Class<?>, List<Object>> groupedBeansByClass) {
-        this.groupedBeansByClass = groupedBeansByClass;
-    }
-
     private void checkForMultipleBeans(Class<?> type, String beanName) {
         Optional.ofNullable(groupedBeansByClass.get(type))
                 .filter(list -> list.size() > 1)

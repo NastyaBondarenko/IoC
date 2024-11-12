@@ -218,6 +218,7 @@ public class AnnotationBasedApplicationContextTest {
         DefaultUserService userService = (DefaultUserService) beanMap.get("DefaultUserService").getValue();
         assertNull(userService.getMailService());
 
+        annotationBasedApplicationContext.groupBeansByClass(beanMap);
         annotationBasedApplicationContext.processBeansBeforeInitialization(beanMap);
 
         assertNotNull(userService.getMailService());

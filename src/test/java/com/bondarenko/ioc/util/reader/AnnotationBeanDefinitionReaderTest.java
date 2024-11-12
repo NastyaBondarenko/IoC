@@ -10,6 +10,7 @@ import java.util.Map;
 
 class AnnotationBeanDefinitionReaderTest {
 
+
     private final String[] SCAN_PACKAGES = {"com.bondarenko.ioc.testclasses.reader"};
 
     @Test
@@ -20,19 +21,14 @@ class AnnotationBeanDefinitionReaderTest {
 
         Assertions.assertEquals(2, beanDefinitionMap.size());
 
-        BeanDefinition beanDefinitionFirst = beanDefinitionMap.get("DefaultUserService");
-        Assertions.assertEquals("DefaultUserService", beanDefinitionFirst.getId());
-        Assertions.assertEquals("com.bondarenko.ioc.testclasses.reader.DefaultUserService", beanDefinitionFirst.getClassName());
+        BeanDefinition beanDefinitionFirst = beanDefinitionMap.get("DefaultMessageService");
+        Assertions.assertEquals("DefaultMessageService", beanDefinitionFirst.getId());
+        Assertions.assertEquals("com.bondarenko.ioc.testclasses.reader.DefaultMessageService", beanDefinitionFirst.getClassName());
         Assertions.assertTrue(beanDefinitionFirst.getRefDependencies().isEmpty());
 
         BeanDefinition beanDefinitionSecond = beanDefinitionMap.get("MailService");
         Assertions.assertEquals("MailService", beanDefinitionSecond.getId());
         Assertions.assertEquals("com.bondarenko.ioc.testclasses.reader.MailService", beanDefinitionSecond.getClassName());
         Assertions.assertTrue(beanDefinitionSecond.getRefDependencies().isEmpty());
-
-        BeanDefinition beanDefinitionThird = beanDefinitionMap.get("MessageService");
-        Assertions.assertEquals("MessageService", beanDefinitionThird.getId());
-        Assertions.assertEquals("com.bondarenko.ioc.testclasses.processor.MessageService", beanDefinitionThird.getClassName());
-        Assertions.assertTrue(beanDefinitionThird.getRefDependencies().isEmpty());
     }
 }
